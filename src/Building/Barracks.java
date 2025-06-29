@@ -5,6 +5,9 @@ import java.awt.Graphics;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import Resource.Cost;
+import Resource.ResourceType;
+import Resource.UnitType;
 import Unit.AbstractUnit;
 import Unit.CombatUnit;
 import GameObjects.Tile;
@@ -33,8 +36,9 @@ public class Barracks extends AbstractBuilding {
     private Vector2 worldPos;
     private Vector2Int cellPos;
 	TileMap map;
+    GamePanel gp;
 	
-    public Barracks(TileMap map, float x, float y) {
+    public Barracks(TileMap map, GamePanel gp, float x, float y) {
 		super(x, y, (int)(GamePanel.TILE_SIZE * WIDTH_TILES), (int)(GamePanel.TILE_SIZE * HEIGHT_TILES));
 		
 		worldPos = new Vector2(x, y); 
@@ -50,29 +54,47 @@ public class Barracks extends AbstractBuilding {
     	currentHealth = maxHealth; 
         
         this.map = map;
+        this.gp = gp;
         
         generateBarracks();
 	}
-	
-    
+
+    /**
+     * Try to build one unit of the given type
+     * If we can’t afford it -> do nothing
+     */
+    public void produce(UnitType type) {
+        Cost cost = type.getCost();
+        if (!gp.RM.canAfford(cost)) {
+            System.out.println("Not enough resources for " + type + "_UNIT");
+            return;
+        }
+
+        // spend resource, queue new unit
+        gp.RM.spend(cost);
+        enqueueUnit(type);
+
+        System.out.println("Built " + type  + " | Remaining minerals: " + gp.RM.get(ResourceType.MINERAL) +
+                            ", used supply: " + gp.RM.getUsedSupply() + "/" + gp.RM.getMaxSupply());
+    }
     
     // Called by CommandActionListener
-    public boolean enqueueUnit() {
+    public void enqueueUnit(UnitType type) {
     	
         if (productionQueue.size() >= MAX_QUEUE) 
-        	return false;
-        
-        // create it now at the origin, we reposition on actual spawn
-        CombatUnit unit = new CombatUnit(
-            map,
-            spawnOriginX,
-            spawnOriginY,
-            (int)GamePanel.TILE_SIZE,
-            (int)GamePanel.TILE_SIZE
-        );
-        
+        	return;
+
+        AbstractUnit unit = null;
+        switch (type){
+            case COMBAT:
+                // create it now at the origin, we reposition on actual spawn
+                unit = new CombatUnit(map, spawnOriginX, spawnOriginY, (int)GamePanel.TILE_SIZE, (int)GamePanel.TILE_SIZE );
+                break;
+            case WORKER:
+                break;
+        }
+
         productionQueue.add(unit);
-        return true;
     }
 
     public void update() {
@@ -188,9 +210,8 @@ public class Barracks extends AbstractBuilding {
 	public boolean isProducing() {
 	    return !productionQueue.isEmpty();
 	}
-	
 	public int getQueueSize() {
 	    return productionQueue.size();
 	}
-	
+
 }

@@ -6,6 +6,7 @@ import java.awt.event.ActionListener;
 import Building.Barracks;
 import Panel.CommandPanel;
 import Panel.GamePanel;
+import Resource.UnitType;
 
 public class CommandActionListener implements ActionListener {
 
@@ -22,7 +23,7 @@ public class CommandActionListener implements ActionListener {
 		
 		if (e.getActionCommand().equals("U")) {
 	        if (cp.getSelectedEntity() instanceof Barracks) {
-	        	((Barracks)cp.getSelectedEntity()).enqueueUnit();
+	        	((Barracks)cp.getSelectedEntity()).produce(UnitType.COMBAT);
 	        }
         }
 	

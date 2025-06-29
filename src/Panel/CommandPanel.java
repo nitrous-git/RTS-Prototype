@@ -19,7 +19,6 @@ public class CommandPanel extends JPanel {
     private static final int BUTTON_SIZE = 48;
     
     private IEntity selectedEntity;
-    
 
     public CommandPanel(GamePanel gp) {
     	this.gp = gp;

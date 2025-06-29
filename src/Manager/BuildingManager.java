@@ -21,16 +21,18 @@ public class BuildingManager {
 	public boolean inPlacementMode;
 
     public static List<Barracks> buildingList;
-    //public static List<Barracks> selectedBuildingList;
     public static IEntity selectedBuilding; // only one selected building at the time
-    TileMap map;
     
     public List<Tile> tempTileList;
     public List<Vector2Int> tempTileIndex;
-	
+
+	TileMap map;
+	GamePanel gp;
+
 	// Constructor
-	public BuildingManager(TileMap map) {
+	public BuildingManager(TileMap map, GamePanel gp) {
 		this.map = map;
+		this.gp = gp;
 		buildingList = new ArrayList<Barracks>();
 		//selectedBuildingList = new ArrayList<Barracks>();
 		tempTileList = new ArrayList<Tile>();
@@ -59,7 +61,7 @@ public class BuildingManager {
     	// convert back to world size after snap
     	Vector2 startf = GamePanel.convertCellToWorld(startPos.x, startPos.y);
     	if (isValidPlacement(startPos, Barracks.WIDTH_TILES, Barracks.HEIGHT_TILES)) {
-    		Barracks barracks = new Barracks(map, startf.x, startf.y);
+    		Barracks barracks = new Barracks(map, gp, startf.x, startf.y);
     		barracks.setTag("Barracks");
     		barracks.setID(startPos.x*startPos.y); // ID is the index of start point inside the grid
     		buildingList.add( barracks ); 
@@ -145,9 +147,8 @@ public class BuildingManager {
 			selectedBuilding = null;
 		}
 	}
-	
-	
-	// Getter & Setter 
+
+	/// Getter & Setter
 	
 	public void setInPlacementMode(boolean inPlacementMode) { this.inPlacementMode = inPlacementMode; }
 	

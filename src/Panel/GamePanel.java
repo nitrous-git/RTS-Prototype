@@ -4,6 +4,7 @@ import javax.swing.*;
 import Manager.BuildingManager;
 import Manager.EnemyUnitManager;
 import Manager.PlayerUnitManager;
+import Manager.ResourceManager;
 import Util.Camera;
 import Util.SelectionBox;
 import Util.TileMap;
@@ -36,6 +37,7 @@ public class GamePanel extends JPanel {
     public PlayerUnitManager PUM;
     public EnemyUnitManager EUM;
     public BuildingManager BM;
+    public ResourceManager RM;
     
     // tiled map
     TileMap map = new TileMap();
@@ -44,7 +46,7 @@ public class GamePanel extends JPanel {
     public GamePanel() {
       setFocusable(true);
       setBackground(Color.BLACK);
-      System.out.println(TILE_SIZE);
+      //System.out.println(TILE_SIZE);
       setPreferredSize(new Dimension(WIDTH, HEIGHT));
       
       // camera
@@ -56,14 +58,8 @@ public class GamePanel extends JPanel {
       // managers
       PUM = new PlayerUnitManager(map);
       EUM = new EnemyUnitManager(map);
-      BM = new BuildingManager(map);
-    
-      // Add listeners 
-      //MouseEventHandler MH = new MouseEventHandler(this);
-      //addMouseListener(MH);
-      //addMouseMotionListener(MH);
-      //KeyEventHandler KH = new KeyEventHandler(this);
-      //addKeyListener(KH);
+      BM = new BuildingManager(map, this);
+      RM = new ResourceManager();
     }
 
     // --- Graphics --- //
