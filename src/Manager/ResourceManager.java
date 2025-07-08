@@ -22,8 +22,8 @@ public class ResourceManager implements IResourceManager {
     @Override
     public boolean canAfford(Cost cost) {
         return mineralCount >= cost.getMinerals()
-                && gasCount     >= cost.getGas()
-                && usedSupply   + cost.getSupply() <= maxSupply;
+                && gasCount >= cost.getGas()
+                && usedSupply + cost.getSupply() <= maxSupply;
     }
 
     @Override
@@ -31,8 +31,8 @@ public class ResourceManager implements IResourceManager {
         if (!canAfford(cost))
             throw new IllegalStateException("Cannot afford: " + cost);
         mineralCount -= cost.getMinerals();
-        gasCount     -= cost.getGas();
-        usedSupply   += cost.getSupply();
+        gasCount -= cost.getGas();
+        usedSupply += cost.getSupply();
     }
 
     @Override

@@ -10,6 +10,11 @@ import Building.Barracks;
 import GameObjects.IEntity;
 import GameObjects.Tile;
 import Panel.GamePanel;
+import Resource.BuildingType;
+import Resource.Cost;
+import Resource.ResourceType;
+import Unit.AbstractUnit;
+import Unit.IControllable;
 import Util.Camera;
 import Util.SelectionBox;
 import Util.TileMap;
@@ -21,8 +26,13 @@ public class BuildingManager {
 	public boolean inPlacementMode;
 
     public static List<Barracks> buildingList;
+
+	// *** could probably be a AbstractBuilding instead of IEntity
     public static IEntity selectedBuilding; // only one selected building at the time
-    
+	public static AbstractBuilding quickSelection;
+
+	public boolean transactionAllowed;
+
     public List<Tile> tempTileList;
     public List<Vector2Int> tempTileIndex;
 
@@ -34,7 +44,6 @@ public class BuildingManager {
 		this.map = map;
 		this.gp = gp;
 		buildingList = new ArrayList<Barracks>();
-		//selectedBuildingList = new ArrayList<Barracks>();
 		tempTileList = new ArrayList<Tile>();
 		tempTileIndex = new ArrayList<Vector2Int>();
 		
@@ -56,7 +65,43 @@ public class BuildingManager {
 		}
 		//handleCollisions();
 	}
-	
+
+	/**
+	 * Construct a building
+	 * If we can’t afford it -> do nothing
+	 */
+	public void construct(AbstractBuilding b, Vector2Int startPos) {
+		BuildingType type = b.TYPE;
+		Cost cost = type.getCost();
+		if (!gp.RM.canAfford(cost)) {
+			System.out.println("Not enough resources for " + type + " building");
+			transactionAllowed = false;
+			return;
+		}
+		transactionAllowed = true;
+
+		// spend resource, construct
+		gp.RM.spend(cost);
+		// change to .add to a list<AbstractBuilding>, not just Barracks cast
+		buildingList.add((Barracks) b);
+		/*
+		switch (type){
+			case BARRACKS -> addBarracks(startPos);
+			case SUPPLY_DEPOT -> addSupplyDepot(startPos);
+			case COMMAND_CENTER -> addCommandCenter(startPos);
+		}
+
+		//addBarracks(startPos);
+		*/
+		// If it's a supply‐providing building, bump the cap
+		if (type.getSupplyProvided() > 0) {
+			gp.RM.increaseMaxSupply(type.getSupplyProvided());
+		}
+		System.out.println("Built " + type
+				+ " | Minerals left: " + gp.RM.get(ResourceType.MINERAL)  + " | Supply: " + gp.RM.getUsedSupply() + "/" + gp.RM.getMaxSupply());
+	}
+
+	/*
     public void addBarracks(Vector2Int startPos) {
     	// convert back to world size after snap
     	Vector2 startf = GamePanel.convertCellToWorld(startPos.x, startPos.y);
@@ -67,7 +112,16 @@ public class BuildingManager {
     		buildingList.add( barracks ); 
 		}
     }
-	
+
+	public void addSupplyDepot(Vector2Int startPos) {
+		// pass
+	}
+
+	public void addCommandCenter(Vector2Int startPos) {
+		// pass
+	}
+	*/
+
 	public boolean isValidPlacement(Vector2Int startPos, int tileWidth, int tileHeight) {	
 		boolean isValid = true;
 		for (int i = startPos.y; i < startPos.y+tileHeight; i++) {
@@ -138,6 +192,14 @@ public class BuildingManager {
 	        tempList.get(0).setSelected(true);
 	        selectedBuilding = tempList.get(0);
 	    }
+	}
+
+	public void checkQuickBoxSelection(SelectionBox SB){
+		for (AbstractBuilding building : buildingList) {
+			if (SB.intersects(building.hitbox)) {
+				quickSelection = building;
+			}
+		}
 	}
 
 	public void clearSelectedBuilding() {

@@ -19,6 +19,9 @@ import Panel.SelectionPanel;
 @SuppressWarnings("serial")
 public class Frame extends JFrame implements Runnable {
 
+    MouseEventHandler MH;
+    KeyEventHandler KH;
+
     GamePanel gamePanel = new GamePanel();
     public JPanel gameContainer = new JPanel();
     public JPanel frameContainer =  new JPanel();
@@ -147,14 +150,20 @@ public class Frame extends JFrame implements Runnable {
         setResizable(false);
         setLocationRelativeTo(null);
         setVisible(true);
- 
-        MouseEventHandler MH = new MouseEventHandler(gamePanel, commandPanel);
+
+        // Handler
+        MH = new MouseEventHandler(gamePanel, commandPanel);
         gamePanel.addMouseListener(MH);
         gamePanel.addMouseMotionListener(MH);
         
-        KeyEventHandler KH = new KeyEventHandler(gamePanel);
+        KH = new KeyEventHandler(gamePanel);
         gamePanel.addKeyListener(KH);
-        
+
+        // Dependence Injection
+        commandPanel.setMouseEventHandler(MH);
+        gamePanel.setSP(selectionPanel);
+        gamePanel.setCP(commandPanel);
+
         // Thread start 
         gameThread.start();
     }

@@ -4,6 +4,7 @@ import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
 
 import GameObjects.Entity;
+import Resource.BuildingType;
 
 /**
  * Base class for all buildings in the game.
@@ -15,7 +16,13 @@ public class AbstractBuilding extends Entity{
     float currentHealth = maxHealth;
     protected boolean selected;
 
-	public AbstractBuilding(float x, float y, int width, int height) {
+    // In construction cycle
+    public enum State { PRE_DEPLOYMENT, UNDER_CONSTRUCTION, IN_OPERATION }
+    public State currentState;
+
+    public BuildingType TYPE;
+
+    public AbstractBuilding(float x, float y, int width, int height) {
 		super(x, y, width, height);
 		initHitbox(x, y, width, height);
 	}
@@ -24,7 +31,7 @@ public class AbstractBuilding extends Entity{
 		// Body hitbox
 		hitbox = new Rectangle2D.Float(x,  y, 0.9f*width, 0.9f*height);
 
-		// init hp bar here because.. why not .. 
+		// init hp bar here because... why not ...
 		healthBar = new Rectangle2D.Float(x-(width/2),  y-1.2f*(height/2), 2f*width, 0.3f*height);
 	}
 	
@@ -33,7 +40,17 @@ public class AbstractBuilding extends Entity{
     	this.currentHealth -= damage;
     	healthBar.width = (float)(currentHealth/maxHealth)*2f*width;
 	}
-	
+
+    public void syncHitbox() {
+        hitbox.x = x;
+        hitbox.y = y;
+        healthBar.x = x-(width/2);
+        healthBar.y = y-1.2f*(height/2);
+    }
+
+
+    /* --- Getter & Setter --- */
+
     public boolean isDestroyed() {
 		return currentHealth <= 0;
 	}
@@ -53,14 +70,7 @@ public class AbstractBuilding extends Entity{
     public float getCurrentHealth() {
     	return currentHealth;
     }
-    
-    public void syncHitbox() {
-    	hitbox.x = x;
-    	hitbox.y = y;
-    	healthBar.x = x-(width/2);
-    	healthBar.y = y-1.2f*(height/2);
-    }
-    
+
     public void setSelected(boolean selected) {
         this.selected = selected;
     }
@@ -68,12 +78,7 @@ public class AbstractBuilding extends Entity{
     public boolean isSelected() {
         return selected;
     }
-    
-    /**
-     * Check whether a world point lies within the building bounds.
-     */
-    public boolean containsPoint(float worldX, float worldY) {
-        return hitbox.contains(worldX, worldY);
-    }
 
+    public boolean isUnderConstruction(){ return currentState == State.UNDER_CONSTRUCTION
+                                                || currentState == State.PRE_DEPLOYMENT ; }
 }

@@ -38,6 +38,9 @@ public class GamePanel extends JPanel {
     public EnemyUnitManager EUM;
     public BuildingManager BM;
     public ResourceManager RM;
+
+    public SelectionPanel SP;
+    public CommandPanel CP;
     
     // tiled map
     TileMap map = new TileMap();
@@ -56,10 +59,13 @@ public class GamePanel extends JPanel {
       map.generateTileMap();
       
       // managers
-      PUM = new PlayerUnitManager(map);
+      PUM = new PlayerUnitManager(map, this);
       EUM = new EnemyUnitManager(map);
       BM = new BuildingManager(map, this);
       RM = new ResourceManager();
+
+      // Dependence injection
+      PUM.setBuildingManager(BM);
     }
 
     // --- Graphics --- //
@@ -125,5 +131,21 @@ public class GamePanel extends JPanel {
         int cellY = (int) Math.floor(y / TILE_SIZE);
         return new Vector2Int(cellX, cellY);
     }
-	
+
+    ///  GETTER AND SETTER ///
+    public SelectionPanel getSP() {
+        return SP;
+    }
+
+    public void setSP(SelectionPanel SP) {
+        this.SP = SP;
+    }
+
+    public CommandPanel getCP() {
+        return CP;
+    }
+
+    public void setCP(CommandPanel CP) {
+        this.CP = CP;
+    }
 }

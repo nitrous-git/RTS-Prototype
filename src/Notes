@@ -1,0 +1,40 @@
+ENTITY TOKEN :
+0 - empty
+1 - WALL
+2 - BARRACKS
+3 - SUPPLY_DEPOT
+4 - COMMAND_CENTER
+5 - WORKER_UNIT
+6 - ENEMY_WORKER_UNIT
+8 - ENEMY_COMBAT_UNIT
+9 - COMBAT_UNIT
+
+After that we will need to refactor the TileMap to include separator for arbitrary # of Entities
+
+
+AbstractUnit :
+implement IControllableUnit
+WORKER_UNIT
+    => Commands :
+       moveTo, Attack, Gather, Repair     (Go to PlacementHelper, waitForInput, WaitMenu)
+
+                Attack
+                    if intArr is blocked, take a random close point and updateSensing anyway
+                    else no Blocked go to point and updateSensing anyway 
+
+                stop         (just stop movement, snap to grid)
+       (Gather, Repair print NotImplemented yet)
+       buildMenu
+           barracksConstruct, SupplyDepotConstruct    (Go to PlacementHelper inside BuildingManager, waitForInput, WaitMenu)
+
+COMBAT_UNIT
+    => Commands :
+       moveTo, Attack, Gather, Repair     (Go to PlacementHelper, waitForInput, WaitMenu)
+       stop         (just stop movement, snap to grid)
+
+
+
+When we press a command from CommandActionListener we setMode of navigation inside MouseEventHandler
+From this navigation mode we, if constraint are respected, we issueCommand the correct way
+
+Ex: CommandActionListener -> MouseEventHandler -> WorkerUnit

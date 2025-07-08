@@ -32,7 +32,8 @@ public class MinimapPanel extends JPanel {
                 // choose colors based on your tile data
                 boolean walkable = gp.map.isWalkable(x, y);
                 terrainImg.setRGB(x, y, walkable ? Color.LIGHT_GRAY.getRGB() : Color.DARK_GRAY.getRGB());
-                if (gp.map.intArr[y][x] == 9 || gp.map.intArr[y][x] == 8) {
+                // change all of this... just check != 0 no isWalkable BS
+                if (gp.map.intArr[y][x] == 9 || gp.map.intArr[y][x] == 8 || gp.map.intArr[y][x] == 5) {
                     terrainImg.setRGB(x, y, Color.LIGHT_GRAY.getRGB());
 				}
             }

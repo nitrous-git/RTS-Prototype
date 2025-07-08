@@ -5,6 +5,8 @@ import java.awt.Graphics;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import Manager.BuildingManager;
+import Resource.BuildingType;
 import Resource.Cost;
 import Resource.ResourceType;
 import Resource.UnitType;
@@ -19,10 +21,11 @@ import Util.Vector2;
 import Util.Vector2Int;
 
 public class Barracks extends AbstractBuilding {
-	
+
+    ///  DECLARATIONS ///
 	public static final int WIDTH_TILES  = 3;
     public static final int HEIGHT_TILES = 5;
-    public static final int COMBAT_TOKEN = 2;
+    public static final int TOKEN = 2;
 
     // production queue
     private static final int MAX_QUEUE      = 5;
@@ -30,17 +33,24 @@ public class Barracks extends AbstractBuilding {
 
     private final Queue<AbstractUnit> productionQueue = new LinkedList<>();
     private int cooldownTimer = 0;
-    
+
+    public static final int CONSTRUCTION_TICKS = 720;
+    private int constructionTimer = 0;
+
     private float spawnOriginX;
     private float spawnOriginY;
     private Vector2 worldPos;
     private Vector2Int cellPos;
+
 	TileMap map;
     GamePanel gp;
-	
+
+    // Class Constructor
     public Barracks(TileMap map, GamePanel gp, float x, float y) {
 		super(x, y, (int)(GamePanel.TILE_SIZE * WIDTH_TILES), (int)(GamePanel.TILE_SIZE * HEIGHT_TILES));
-		
+
+        TYPE = BuildingType.BARRACKS;
+
 		worldPos = new Vector2(x, y); 
 		cellPos = GamePanel.convertWorldToCell(x, y);
 		
@@ -55,10 +65,49 @@ public class Barracks extends AbstractBuilding {
         
         this.map = map;
         this.gp = gp;
-        
-        generateBarracks();
+
+        this.currentState = State.PRE_DEPLOYMENT;
+        generateBarracks(Color.DARK_GRAY);
 	}
 
+    public void update() {
+        switch(currentState){
+            case PRE_DEPLOYMENT:
+                // wait for WorkerUnit call
+                return;
+            case State.UNDER_CONSTRUCTION:
+                constructionTimer++;
+                if (constructionTimer >= CONSTRUCTION_TICKS) {
+                    currentState = State.IN_OPERATION;
+                    generateBarracks(Color.LIGHT_GRAY);
+                    System.out.println("Construction Completed...");
+                    // activate commandPanel
+                    gp.CP.setCommandsForBuilding(this);
+                }
+                return;
+            case State.IN_OPERATION:
+                updateProductionQueue();
+                return;
+        }
+    }
+
+    @Override
+    public void draw(Graphics g, Camera camera) {
+        if (!camera.captures(this)) return;
+
+        // highlight if selected
+        if (selected) {
+            g.setColor(Color.YELLOW);
+            g.drawRect(
+                    (int)((x - camera.getX()) * camera.scaleX),
+                    (int)((y - camera.getY()) * camera.scaleY),
+                    (int)(width * camera.scaleX),
+                    (int)(height * camera.scaleY)
+            );
+        }
+    }
+
+    /// PRODUCTION CYCLE ///
     /**
      * Try to build one unit of the given type
      * If we can’t afford it -> do nothing
@@ -90,14 +139,14 @@ public class Barracks extends AbstractBuilding {
                 // create it now at the origin, we reposition on actual spawn
                 unit = new CombatUnit(map, spawnOriginX, spawnOriginY, (int)GamePanel.TILE_SIZE, (int)GamePanel.TILE_SIZE );
                 break;
-            case WORKER:
+            case WORKER: // nop... Barracks doesn't spawn WORKER lol
                 break;
         }
 
         productionQueue.add(unit);
     }
 
-    public void update() {
+    public void updateProductionQueue(){
         // If we have units queued, advance cooldown
         if (!productionQueue.isEmpty()) {
             cooldownTimer++;
@@ -128,36 +177,23 @@ public class Barracks extends AbstractBuilding {
         PlayerUnitManager.unitList.add(unit);
 
         // now mark it occupied
-        map.intArr[free.y][free.x] = COMBAT_TOKEN;
+        map.intArr[free.y][free.x] = CombatUnit.TOKEN;
     }
 
-    @Override
-    public void draw(Graphics g, Camera camera) {
-        if (!camera.captures(this)) return;
+    /// -----------------------------------------
 
-        // highlight if selected
-        if (selected) {
-            g.setColor(Color.YELLOW);
-            g.drawRect(
-                (int)((x - camera.getX()) * camera.scaleX),
-                (int)((y - camera.getY()) * camera.scaleY),
-                (int)(width * camera.scaleX),
-                (int)(height * camera.scaleY)
-            );
-        }
-    }	
-	
+    ///  UTILITY AND HELPER ///
     // Add to tileArr and intArr 
     // Check for validity in BuildingManager, not here 
-    public void generateBarracks() {
+    public void generateBarracks(Color color) {
     	for (int i = 0; i < HEIGHT_TILES; i++) {
 		    for (int j = 0; j < WIDTH_TILES; j++) {
 		    	map.tileArr[cellPos.y+i][cellPos.x+j] = new Tile(worldPos.x + j*(int)GamePanel.TILE_SIZE, 
 																worldPos.y + i*(int)GamePanel.TILE_SIZE, 
 																(int)GamePanel.TILE_SIZE, 
-																(int)GamePanel.TILE_SIZE, 
-																Color.LIGHT_GRAY);
-		    	map.intArr[cellPos.y+i][cellPos.x+j] = COMBAT_TOKEN;
+																(int)GamePanel.TILE_SIZE,
+                                                                color);
+		    	map.intArr[cellPos.y+i][cellPos.x+j] = Barracks.TOKEN;
 		    }
     	}
 	}
@@ -199,19 +235,23 @@ public class Barracks extends AbstractBuilding {
         // no free cell found
         return null;
     }
-	
-	// Utility method 
-	public int getCooldownTimer() {
-	    return cooldownTimer;
-	}
-	public static int getCooldownTicks() {
-	    return COOLDOWN_TICKS;
-	}
-	public boolean isProducing() {
-	    return !productionQueue.isEmpty();
-	}
-	public int getQueueSize() {
-	    return productionQueue.size();
-	}
 
+    /// -----------------------------------------
+
+    ///  GETTER AND SETTER ///
+	// Utility method 
+	public int getCooldownTimer() { return cooldownTimer; }
+	public static int getCooldownTicks() { return COOLDOWN_TICKS; }
+    public int getConstructionTimer() { return constructionTimer; }
+    public static int getConstructionTicks() { return CONSTRUCTION_TICKS; }
+	public boolean isProducing() { return !productionQueue.isEmpty(); }
+	public int getQueueSize() { return productionQueue.size(); }
+    /// -----------------------------------------
+
+    // -----------------------------------
+    // pretty printing
+    @Override
+    public String toString() {
+        return "tag : " + tag +" "+ ID + " IsSelected : " + selected;
+    }
 }

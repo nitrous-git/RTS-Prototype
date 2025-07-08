@@ -10,6 +10,7 @@ import Util.Camera;
 public class EnemyUnit extends AbstractUnit {
     
 	AbstractUnit targetPlayerUnit;
+	public static final int TOKEN = 8;
 	
     public EnemyUnit(float x, float y, int width, int height) {
 		super(x, y, width, height);

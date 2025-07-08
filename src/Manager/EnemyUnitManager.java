@@ -48,7 +48,7 @@ public class EnemyUnitManager {
 		  
 		  for (int i = 0; i < GamePanel.ROWS; i++) {
 		    for (int j = 0; j < GamePanel.COLS; j++) {
-		        if (map.intArr[i][j] == 8) {
+		        if (map.intArr[i][j] == EnemyUnit.TOKEN) {
 		        	EnemyUnit unit = new EnemyUnit(posX, posY, (int)GamePanel.TILE_SIZE, (int)GamePanel.TILE_SIZE);
 					int index = GamePanel.COLS*i + j;
 					unit.setID(index);

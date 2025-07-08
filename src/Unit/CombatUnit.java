@@ -3,6 +3,8 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.util.List;
 
+import Command.CommandContext;
+import Command.CommandType;
 import GameObjects.Projectile;
 import Panel.GamePanel;
 import Manager.EnemyUnitManager;
@@ -13,9 +15,12 @@ import Util.TileMap;
 import Util.Vector2;
 import Util.Vector2Int;
 
-public class CombatUnit extends AbstractUnit {
-	
-	//private boolean selected;
+public class CombatUnit extends AbstractUnit implements IControllable {
+
+    protected CommandType currentCommand = CommandType.IDLE;
+    protected CommandContext ctx;
+
+	public static final int TOKEN = 9;
     private boolean isMoving;
     private float speed = 1.8f;  
     
@@ -44,8 +49,9 @@ public class CombatUnit extends AbstractUnit {
     	
     	// boost player unit health 
     	setMaxHealth(300.0f);
-    	currentHealth = maxHealth;
-    	
+    	currentHealth = 100f;
+        healthBar.width = (float)(currentHealth/maxHealth)*2f*width;
+
     	this.map = map;
     	pf = new Pathfinder();
     	
@@ -89,7 +95,14 @@ public class CombatUnit extends AbstractUnit {
 			}
 		}
     }
-    
+
+    @Override
+    public void issueCommand(CommandType command, CommandContext ctx) {
+        this.currentCommand = command;
+        this.ctx = ctx;
+        // reset path/index/timers, to do here ...
+    }
+
     // update method
     public void update() {
     	updateProjectileList();
@@ -173,14 +186,7 @@ public class CombatUnit extends AbstractUnit {
             }
         }
 	}
-    
-    public void removeOldPositions(int lastIndex) {
-    	for (int i = 0; i < lastIndex; i++) {
-    		map.intArr[path.get(i).y][path.get(i).x] = 0;
-		}
-	}
-    
-    
+
     // Set a new target and compute velocity so we move toward it.
     public void moveTo(float newX, float newY, Camera camera ) {
     	
@@ -214,8 +220,7 @@ public class CombatUnit extends AbstractUnit {
         isMoving = true; // is moving order is ongoing
         currentState = states[1];
     }
-    
-    
+
     // Handles when the next cell is blocked
     private void handleBlockedCell(Vector2Int blockedNode) {
         if (!isWaiting) {
@@ -292,9 +297,7 @@ public class CombatUnit extends AbstractUnit {
 
         path = null;
     }
-    
 
-    
 	public void updateUnitSensing() {
 		List<EnemyUnit> eul = EnemyUnitManager.unitList;
 		float max = (float) Double.MAX_VALUE;
@@ -340,19 +343,19 @@ public class CombatUnit extends AbstractUnit {
 			updateUnitSensing();
 		}
 	}
-	
-	
-    // Getters/Setters 
-    // --------------------------------------------
-    
-//    public void setSelected(boolean selected) {
-//        this.selected = selected;
-//    }
-//
-//    public boolean isSelected() {
-//        return selected;
-//    }
-//
+
+
+    // -----------------------------------
+    // Getter & Setter
+    public void setSelected(boolean selected) {
+        this.selected = selected;
+    }
+
+    public boolean isSelected() {
+        return selected;
+    }
+
+    // -----------------------------------
     // pretty printing 
     @Override
     public String toString() {

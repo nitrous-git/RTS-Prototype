@@ -18,7 +18,8 @@ public abstract class AbstractUnit extends Entity {
 	
     Rectangle2D.Float healthBar;
     float maxHealth = 100;
-    float currentHealth = maxHealth;
+    public float currentHealth = maxHealth;
+	public int repairTimer = 0;
 	
 	public AbstractUnit(float x, float y, int width, int height) {
 		super(x, y, width, height);
@@ -59,6 +60,11 @@ public abstract class AbstractUnit extends Entity {
     	this.currentHealth -= damage;
     	healthBar.width = (float)(currentHealth/maxHealth)*2f*width;
 	}
+
+	public void addHealth(int buff) {
+		this.currentHealth += buff;
+		healthBar.width = (float)(currentHealth/maxHealth)*2f*width;
+	}
     
     public boolean isDead() {
 		return currentHealth <= 0;
@@ -66,14 +72,6 @@ public abstract class AbstractUnit extends Entity {
     
     // Getters/Setters 
     // --------------------------------------------
-
-	public void setSelected(boolean selected) {
-		this.selected = selected;
-	}
-
-	public boolean isSelected() {
-		return selected;
-	}
 
 	public Rectangle.Float getHitbox() {
 		return hitbox;

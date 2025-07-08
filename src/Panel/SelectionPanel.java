@@ -46,8 +46,7 @@ public class SelectionPanel extends JPanel {
         	paintBuildingInfo(sb, g, y);
 		}
     }
-      
-    @SuppressWarnings("unchecked")
+
 	public void paintUnitInfo(List<AbstractUnit> sel, Graphics g, int y) {
         if (sel.size() == 1) {
             AbstractUnit u = sel.get(0);
@@ -80,11 +79,14 @@ public class SelectionPanel extends JPanel {
         
         // add UI if in production 
         y += 20;
-        // —— production cooldown slider for Barracks ——
+
+        UnderConstructionSlider(ab, g, y);
+
+        // ---production cooldown slider for Barracks ---
         if (ab instanceof Barracks) {
             Barracks b = (Barracks) ab;
             if (b.isProducing()) {
-                // ——— cooldown slider ——–
+                // --- cooldown slider ---
                 int cd    = b.getCooldownTimer();
                 int maxCd = Building.Barracks.getCooldownTicks();
                 int barW  = 100, barH = 10;
@@ -103,7 +105,7 @@ public class SelectionPanel extends JPanel {
                     y + barH
                 );
                     
-                // —— blue-circle icons under slider ——–
+                // --- blue-circle icons under slider ---
                 y += barH + 8;
                 int iconSize = 12;
                 int spacing  = 6;
@@ -122,9 +124,7 @@ public class SelectionPanel extends JPanel {
             }
         }
 	}
-    
-    
-    
+
     private boolean allSameTag(List<? extends IEntity> entity) {
         if (entity.isEmpty()) {	
             return false;
@@ -136,5 +136,32 @@ public class SelectionPanel extends JPanel {
             }
         }
         return true;
+    }
+
+    public void UnderConstructionSlider(AbstractBuilding ab, Graphics g, int y){
+        if (ab.isUnderConstruction()) {
+            // --- Barracks under construction --- //
+            if (ab instanceof Barracks) {
+                Barracks b = (Barracks) ab;
+                // --- cooldown slider ---
+                int cd    = b.getConstructionTimer();
+                int maxCd = Building.Barracks.getConstructionTicks();
+                int barW  = 100, barH = 10;
+                float frac = (float)(maxCd - cd) / maxCd;
+                int fillW = (int)(barW * frac);
+
+                g.setColor(Color.LIGHT_GRAY);
+                g.fillRect(10, y, barW, barH);
+                g.setColor(new Color(0.0f, 0.4f, 0.0f));
+                g.fillRect(10, y, fillW, barH);
+                g.setColor(Color.BLACK);
+                g.drawRect(10, y, barW, barH);
+                g.drawString(
+                        String.format("Completed in: %d%%", Math.round(frac * 100)),
+                        10 + barW + 5,
+                        y + barH
+                );
+            }
+        }
     }
 }

@@ -7,9 +7,13 @@ import GameObjects.Tile;
 import Panel.GamePanel;
 
 /**
- * TileMap
+ * TileMap class
+ * Utility and data storage
  */
 public class TileMap {
+
+	// WALL_TOKEN is parsed directly to char
+	public static final char WALL_TOKEN = 1;
 
     BufferedReader br;
     int c = 0;
@@ -21,7 +25,6 @@ public class TileMap {
     public Tile[][] tileArr = new Tile[row][column];
     public Tile[][] tileArrOverlay = new Tile[row][column];
     public Tile[][]  pathHelper = new Tile[row][column];
-    
 
     public TileMap(){
     	fileReader();
@@ -72,7 +75,7 @@ public class TileMap {
 		    for (int j = 0; j < column; j++) {
 		        if (charArr[i][j] == '1') {
 		        	tileArr[i][j] = new Tile(posX, posY, (int)GamePanel.TILE_SIZE, (int)GamePanel.TILE_SIZE, Color.RED);
-		        } else {
+		        } else { // empty token is 0
 		        	tileArr[i][j] = null;
 		        }
 		        tileArrOverlay[i][j] = null;
@@ -108,6 +111,5 @@ public class TileMap {
 	public boolean isWalkable(int x, int y) {
 		return intArr[y][x] == 0; 
 	}
-
 
 }
