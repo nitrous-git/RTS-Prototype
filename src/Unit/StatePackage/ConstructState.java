@@ -13,7 +13,6 @@ public class ConstructState implements IUnitState {
         this.currentBuildingType = currentBuildingType;
     }
 
-
     @Override
     public void onEnter(WorkerUnit unit) {
         unit.startConstruction();

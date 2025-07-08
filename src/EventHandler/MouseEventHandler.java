@@ -99,10 +99,10 @@ public class MouseEventHandler implements MouseListener, MouseMotionListener {
                             }
                             if (BuildingManager.quickSelection != null){
                                 if (unit instanceof WorkerUnit wu) {
-                                    wu.setConstructionBuildingRef(BuildingManager.quickSelection);
                                     Vector2Int cellStartPos = GamePanel.convertWorldToCell(worldX, worldY);
                                     ctx = new CommandContext().setConstruction(currentBuildingType, cellStartPos);
                                     controllable.issueCommand(CommandType.CONSTRUCT, ctx);
+                                    wu.setConstructionBuildingRef(BuildingManager.quickSelection);
                                 }
                             }
 
