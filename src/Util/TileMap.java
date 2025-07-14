@@ -14,6 +14,7 @@ public class TileMap {
 
 	// WALL_TOKEN is parsed directly to char
 	public static final char WALL_TOKEN = 1;
+	public static final int EMPTY_TOKEN = 0;
 
     BufferedReader br;
     int c = 0;
@@ -32,7 +33,7 @@ public class TileMap {
 
     public void fileReader() {
         try {
-        	String filePath = "./res/tileMap2.txt";
+        	String filePath = "./res/tileMap3.txt";
             br = new BufferedReader( new FileReader(filePath));
 
             for (int i = 0; i < row; i++) {
@@ -74,7 +75,7 @@ public class TileMap {
 		  for (int i = 0; i < row; i++) {
 		    for (int j = 0; j < column; j++) {
 		        if (charArr[i][j] == '1') {
-		        	tileArr[i][j] = new Tile(posX, posY, (int)GamePanel.TILE_SIZE, (int)GamePanel.TILE_SIZE, Color.RED);
+		        	tileArr[i][j] = new Tile(posX, posY, (int)GamePanel.TILE_SIZE, (int)GamePanel.TILE_SIZE, GameColors.WALL);
 		        } else { // empty token is 0
 		        	tileArr[i][j] = null;
 		        }

@@ -25,7 +25,6 @@ public class PlayerUnitManager {
 	public List<Tile> tempTileList;
 	public List<Vector2Int> tempTileIndex;
 
-	public BuildingManager BM;
 	public GamePanel GP;
 
 	// Constructor
@@ -38,6 +37,8 @@ public class PlayerUnitManager {
 
 		tempTileList = new ArrayList<Tile>();
 		tempTileIndex = new ArrayList<Vector2Int>();
+
+		buildUnitSquad();
 	}
 	
 	public void draw(Graphics g, Camera c) {
@@ -63,7 +64,7 @@ public class PlayerUnitManager {
 		if (map.intArr[startPos.y][startPos.x] != 0) {
 			tempColor = Color.DARK_GRAY;
 		}else {
-			tempColor = Color.GREEN;
+			tempColor = GameColors.MOVEMENT_TILE_HELPER;
 		}
 		map.tileArrOverlay[startPos.y][startPos.x] = new Tile(worldPos.x, worldPos.y, (int)GamePanel.TILE_SIZE, (int)GamePanel.TILE_SIZE, tempColor);
 		tempTileIndex.add(new Vector2Int(startPos.x, startPos.y));
@@ -96,7 +97,7 @@ public class PlayerUnitManager {
 					unitList.add(unit);
 		        }
 				if (map.intArr[i][j] == WorkerUnit.TOKEN) {
-					WorkerUnit unit = new WorkerUnit(map, BM, GP, posX, posY, (int)GamePanel.TILE_SIZE, (int)GamePanel.TILE_SIZE);
+					WorkerUnit unit = new WorkerUnit(map, GP.BM, GP.RM, GP, posX, posY, (int)GamePanel.TILE_SIZE, (int)GamePanel.TILE_SIZE);
 					int index = GamePanel.COLS*i + j;
 					unit.setID(index);
 					unit.setTag("Worker");
@@ -147,12 +148,4 @@ public class PlayerUnitManager {
 		return su;
 	}
 
-	// set ref to building manager
-	public void setBuildingManager(BuildingManager BM) {
-		this.BM = BM;
-		// we cannot build unit squad in the constructor, because we delay the set of BM
-		// ie : BM is null inside the constructor, we'll fix this later...
-		// we don't necessarily want to build unit directly at the start of the game
-		buildUnitSquad();
-	}
 }

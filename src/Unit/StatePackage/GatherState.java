@@ -1,27 +1,31 @@
 package Unit.StatePackage;
 
+import Resource.ResourceType;
 import Unit.WorkerUnit;
 import Util.Vector2Int;
 
-public class RepairState implements IUnitState<WorkerUnit> {
+public class GatherState implements IUnitState<WorkerUnit>{
+
+    ResourceType resourceType;
     Vector2Int cellStartPos;
 
-    public RepairState(Vector2Int cellStartPos){
+    public GatherState(ResourceType resourceType, Vector2Int cellStartPos) {
         this.cellStartPos = cellStartPos;
+        this.resourceType = resourceType;
     }
 
     @Override
     public void onEnter(WorkerUnit unit) {
-        unit.startRepair();
+        unit.startGather();
     }
 
     @Override
     public void update(WorkerUnit unit) {
-        unit.updateRepair();
+        unit.updateGather();
     }
 
     @Override
     public void onExit(WorkerUnit unit) {
-        unit.endRepair();
+        unit.endGather();
     }
 }

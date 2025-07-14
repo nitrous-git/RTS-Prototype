@@ -1,9 +1,11 @@
-package Resource;
+package Building;
+
+import Resource.Cost;
 
 public enum BuildingType {
     BARRACKS(new Cost(100, 0, 0), 0),
-    COMMAND_CENTER(new Cost(100, 0, 0), 0),
-    SUPPLY_DEPOT(new Cost(100, 0, 0), 8); // provides +8 supply
+    COMMAND_CENTER(new Cost(200, 0, 0), 0),
+    SUPPLY_DEPOT(new Cost(100, 0, 0), 4); // provides +4 supply
 
     private final Cost cost;
     private final int supplyProvided;

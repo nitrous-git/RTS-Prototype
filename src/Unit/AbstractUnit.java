@@ -1,6 +1,7 @@
 package Unit;
 import GameObjects.Entity;
 import GameObjects.Projectile;
+import Util.Camera;
 
 import java.awt.Rectangle;
 import java.awt.geom.Ellipse2D;
@@ -20,7 +21,9 @@ public abstract class AbstractUnit extends Entity {
     float maxHealth = 100;
     public float currentHealth = maxHealth;
 	public int repairTimer = 0;
-	
+	public int gatherTimer = 0;
+	public int deliverTimer = 0;
+
 	public AbstractUnit(float x, float y, int width, int height) {
 		super(x, y, width, height);
 		initHitbox(x, y, width, height);
@@ -48,7 +51,15 @@ public abstract class AbstractUnit extends Entity {
 			}
 		}
 	}
-	
+
+	public void moveTo(float newX, float newY, Camera camera ){ };
+
+	public void updateMoveToLocation(){ };
+
+	public void endPathEarly(){ };
+
+	public void updateUnitSensing(){ };
+
 	public float calculateDistance(float target_x, float target_y) {
 		float dx = target_x - this.x;
 		float dy = target_y - this.y;

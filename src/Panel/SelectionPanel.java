@@ -9,10 +9,15 @@ import javax.swing.JPanel;
 
 import Building.AbstractBuilding;
 import Building.Barracks;
+import Building.CommandCenter;
+import Manager.ResourceManager;
+import Resource.ResourceNode;
 import Unit.AbstractUnit;
 import GameObjects.IEntity;
 import Manager.BuildingManager;
 import Manager.PlayerUnitManager;
+import Unit.CombatUnit;
+import Unit.WorkerUnit;
 
 public class SelectionPanel extends JPanel {
 
@@ -27,24 +32,32 @@ public class SelectionPanel extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         List<AbstractUnit> sel = PlayerUnitManager.getSelectedUnitList();
+        List<ResourceNode> rnl = ResourceManager.getSelectedResourceNodeList();
         IEntity sb = BuildingManager.getSelectedBuilding();
+
         g.setColor(Color.BLACK);
         int y = 20;
 
-        if (sel.isEmpty() && sb == null) {
-            g.drawString("No selection", 10, y);
+        if (sel.isEmpty() && sb == null && rnl.isEmpty()) {
+            //g.drawString("No selection", 10, y);
+            paintResourceEconomyInfo(g, y);
             return;
         }
 
 		// Enforce the unit-over-building policy in the selection box logic
-		// just like Starcraft 1 
+		// just like Starcraft 1
         if (!sel.isEmpty()) {
             paintUnitInfo(sel, g, y);
             return;
         }
-        if (sb != null) { // only one selected building at the time
-        	paintBuildingInfo(sb, g, y);
+        else if (sb != null) { // only one selected building at the time
+        	paintSelectedBuildingInfo(sb, g, y);
+            return;
 		}
+        else if (!rnl.isEmpty()) {
+            paintResourceNodeInfo(rnl,g, y);
+            return;
+        }
     }
 
 	public void paintUnitInfo(List<AbstractUnit> sel, Graphics g, int y) {
@@ -55,6 +68,12 @@ public class SelectionPanel extends JPanel {
             g.drawString("ID: " + u.getID(), 10, y); 
             y += 20;
             g.drawString("Health: " + (int)u.getCurrentHealth() + "/" + (int)u.getMaxHealth(), 10, y);
+            if (u instanceof WorkerUnit wu) {
+                y += 20;
+                g.drawString("Type : " + wu.getCurrentGatherType(), 10, y);
+                y += 20;
+                g.drawString("Capacity : " + wu.carryLoad + "/" + wu.carryCapacity, 10, y);
+            }
         } else {
             if (allSameTag(sel)) {
                 String tag = sel.get(0).getTag();
@@ -69,7 +88,29 @@ public class SelectionPanel extends JPanel {
         }
 	}
 
-    public void paintBuildingInfo(IEntity sb, Graphics g, int y) {
+    public void paintResourceNodeInfo(List<ResourceNode> sel, Graphics g, int y) {
+        if (sel.size() == 1) {
+            ResourceNode n = sel.get(0);
+            g.drawString("Tag: " + n.getTag(), 10, y);
+            y += 20;
+            g.drawString("ID: " + n.getID(), 10, y);
+            y += 20;
+            g.drawString("Resources : " + (int)n.getRemainingAmount() + "/" + (int)n.initialAmount, 10, y);
+        } else {
+            if (allSameTag(sel)) {
+                String tag = sel.get(0).getTag();
+                g.drawString("Tag: " + tag, 10, y);
+                y += 20;
+                g.drawString("Count: " + sel.size(), 10, y);
+            } else {
+                g.drawString("Source: Multiple", 10, y);
+                y += 20;
+                g.drawString("Count: " + sel.size(), 10, y);
+            }
+        }
+    }
+
+    public void paintSelectedBuildingInfo(IEntity sb, Graphics g, int y) {
     	AbstractBuilding ab = (AbstractBuilding)sb;
         g.drawString("Tag: " + ab.getTag(), 10, y); 
         y += 20;
@@ -81,48 +122,7 @@ public class SelectionPanel extends JPanel {
         y += 20;
 
         UnderConstructionSlider(ab, g, y);
-
-        // ---production cooldown slider for Barracks ---
-        if (ab instanceof Barracks) {
-            Barracks b = (Barracks) ab;
-            if (b.isProducing()) {
-                // --- cooldown slider ---
-                int cd    = b.getCooldownTimer();
-                int maxCd = Building.Barracks.getCooldownTicks();
-                int barW  = 100, barH = 10;
-                float frac = (float)(maxCd - cd) / maxCd;
-                int fillW = (int)(barW * frac);
-
-                g.setColor(Color.LIGHT_GRAY);
-                g.fillRect(10, y, barW, barH);
-                g.setColor(new Color(0.0f, 0.4f, 0.0f));
-                g.fillRect(10, y, fillW, barH);
-                g.setColor(Color.BLACK);
-                g.drawRect(10, y, barW, barH);
-                g.drawString(
-                    String.format("Spawn in: %d%%", Math.round(frac * 100)),
-                    10 + barW + 5,
-                    y + barH
-                );
-                    
-                // --- blue-circle icons under slider ---
-                y += barH + 8;
-                int iconSize = 12;
-                int spacing  = 6;
-                int maxIcons = 5;
-                int count    = Math.min(b.getQueueSize(), maxIcons);
-   
-                for (int i = 0; i < count; i++) {
-	                int xPos = 10 + i * (iconSize + spacing);
-	           		// filled blue circle
-	               	g.setColor(Color.BLUE);
-	               	g.fillOval(xPos, y, iconSize, iconSize);
-	               	// black outline
-	           		g.setColor(Color.BLACK);
-	       			g.drawOval(xPos, y, iconSize, iconSize);
-                }
-            }
-        }
+        ProductionSlider(ab, g, y);
 	}
 
     private boolean allSameTag(List<? extends IEntity> entity) {
@@ -140,28 +140,85 @@ public class SelectionPanel extends JPanel {
 
     public void UnderConstructionSlider(AbstractBuilding ab, Graphics g, int y){
         if (ab.isUnderConstruction()) {
-            // --- Barracks under construction --- //
-            if (ab instanceof Barracks) {
-                Barracks b = (Barracks) ab;
-                // --- cooldown slider ---
-                int cd    = b.getConstructionTimer();
-                int maxCd = Building.Barracks.getConstructionTicks();
-                int barW  = 100, barH = 10;
-                float frac = (float)(maxCd - cd) / maxCd;
-                int fillW = (int)(barW * frac);
+            // --- cooldown slider ---
+            int cd    = ab.getConstructionTimer();
+            int maxCd = AbstractBuilding.getConstructionTicks();
+            int barW  = 100, barH = 10;
+            float frac = (float)(maxCd - cd) / maxCd;
+            int fillW = (int)(barW * frac);
 
-                g.setColor(Color.LIGHT_GRAY);
-                g.fillRect(10, y, barW, barH);
-                g.setColor(new Color(0.0f, 0.4f, 0.0f));
-                g.fillRect(10, y, fillW, barH);
+            g.setColor(Color.LIGHT_GRAY);
+            g.fillRect(10, y, barW, barH);
+            g.setColor(new Color(0.0f, 0.4f, 0.0f));
+            g.fillRect(10, y, fillW, barH);
+            g.setColor(Color.BLACK);
+            g.drawRect(10, y, barW, barH);
+            g.drawString(
+                    String.format("Completed in: %d%%", Math.round(frac * 100)),
+                    10 + barW + 5,
+                    y + barH
+            );
+
+        }
+    }
+
+    public void ProductionSlider(AbstractBuilding ab, Graphics g, int y){
+        if (ab.isProducing()) {
+            // --- production cooldown slider
+            int cd = ab.getCooldownTimer();
+            int maxCd = AbstractBuilding.getCooldownTicks();
+            int barW = 100, barH = 10;
+            float frac = (float) (maxCd - cd) / maxCd;
+            int fillW = (int) (barW * frac);
+
+            g.setColor(Color.LIGHT_GRAY);
+            g.fillRect(10, y, barW, barH);
+            g.setColor(new Color(0.0f, 0.4f, 0.0f));
+            g.fillRect(10, y, fillW, barH);
+            g.setColor(Color.BLACK);
+            g.drawRect(10, y, barW, barH);
+            g.drawString(
+                    String.format("Spawn in: %d%%", Math.round(frac * 100)),
+                    10 + barW + 5,
+                    y + barH
+            );
+
+            // --- blue-circle icons under slider ---
+            y += barH + 8;
+            int iconSize = 12;
+            int spacing = 6;
+            int maxIcons = 5;
+            int count = Math.min(ab.getQueueSize(), maxIcons);
+
+            for (int i = 0; i < count; i++) {
+                int xPos = 10 + i * (iconSize + spacing);
+
+                if (ab instanceof Barracks) {
+                    // filled blue circle
+                    g.setColor(Color.BLUE);
+                    g.fillOval(xPos, y, iconSize, iconSize);
+                }
+
+                if (ab instanceof CommandCenter) {
+                    // filled blue circle
+                    g.setColor(Color.LIGHT_GRAY);
+                    g.fillOval(xPos, y, iconSize, iconSize);
+                }
+
+                // black outline
                 g.setColor(Color.BLACK);
-                g.drawRect(10, y, barW, barH);
-                g.drawString(
-                        String.format("Completed in: %d%%", Math.round(frac * 100)),
-                        10 + barW + 5,
-                        y + barH
-                );
+                g.drawOval(xPos, y, iconSize, iconSize);
             }
         }
+    }
+
+    public void paintResourceEconomyInfo(Graphics g, int y){
+        g.drawString("Economy: ", 10, y);
+        y += 20;
+        g.drawString("Mineral: " + gp.RM.getMineralCount(), 10, y);
+        y += 20;
+        g.drawString("Gas: " + gp.RM.getGasCount(), 10, y);
+        y += 20;
+        g.drawString("Population : " + (int)gp.RM.getUsedSupply() + "/" + (int)gp.RM.getMaxSupply(), 10, y);
     }
 }

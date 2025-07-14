@@ -1,6 +1,7 @@
 package Unit;
 import java.awt.Color;
 import java.awt.Graphics;
+import java.util.ArrayList;
 import java.util.List;
 
 import Command.CommandContext;
@@ -10,10 +11,8 @@ import Panel.GamePanel;
 import Manager.EnemyUnitManager;
 import Manager.PlayerUnitManager;
 import Pathfind.Pathfinder;
-import Util.Camera;
-import Util.TileMap;
-import Util.Vector2;
-import Util.Vector2Int;
+import Unit.StatePackage.*;
+import Util.*;
 
 public class CombatUnit extends AbstractUnit implements IControllable {
 
@@ -26,8 +25,9 @@ public class CombatUnit extends AbstractUnit implements IControllable {
     
 	EnemyUnit targetEnemyUnit;
 	
-	String[] states =  new String[] { "IDL", "MVG", "ATK" }; 
-	String currentState = states[0];
+	//String[] states =  new String[] { "IDL", "MVG", "ATK" };
+	//String currentState = states[0];
+    private IUnitState<CombatUnit> currentState;
 	
 	Pathfinder pf;
 	TileMap map; // Reference to the game map
@@ -56,7 +56,11 @@ public class CombatUnit extends AbstractUnit implements IControllable {
     	pf = new Pathfinder();
     	
     	this.currentNode = GamePanel.convertWorldToCell(x, y);
+        this.currentState = new IdleState<CombatUnit>();
+        issueCommand(CommandType.IDLE, null);
     }
+
+    ///  ------------------------------
 
     @Override
     public void draw(Graphics g, Camera camera) {
@@ -65,14 +69,14 @@ public class CombatUnit extends AbstractUnit implements IControllable {
 		    // draw a highlight if selected
 	        if (selected) {
 	            // draw a border around the oval
-	            g.setColor(Color.CYAN);
+	            g.setColor(GameColors.UNIT_HIGHLIGHT);
 	            g.drawOval((int)(((x - 2) - camera.getX()) * camera.scaleX), 
 	            		(int)(((y - 2) - camera.getY()) * camera.scaleY), 
 	            		(int)((width + 4) * camera.scaleX), 
 	            		(int)((height + 4) * camera.scaleY));
 	        }
 	        
-	        g.setColor(Color.BLUE);
+	        g.setColor(GameColors.UNIT_PLAYER_COMBAT);
 			g.fillOval( (int)((x - camera.getX()) * camera.scaleX),
 						(int)((y - camera.getY()) * camera.scaleY),
 						(int)(width * camera.scaleX),
@@ -96,36 +100,40 @@ public class CombatUnit extends AbstractUnit implements IControllable {
 		}
     }
 
+    // issueCommand one time on call
     @Override
     public void issueCommand(CommandType command, CommandContext ctx) {
         this.currentCommand = command;
         this.ctx = ctx;
-        // reset path/index/timers, to do here ...
+
+        switch (currentCommand) {
+            case IDLE -> setState(new IdleState<CombatUnit>());
+            case MOVE -> setState(new MoveState<CombatUnit>(ctx.getX(), ctx.getY(), ctx.getCamera()));
+            case HOLD_POSITION -> endPathEarly();
+            case ATTACK -> setState(new AttackState());
+        }
     }
 
-    // update method
+    // update command on every ticks
     public void update() {
-    	updateProjectileList();
-    	
-    	// update states
-    	switch (currentState) {
-			case "IDL": {
-		    	updateUnitSensing();
-				return;
-			}
-			case "MVG":{
-				updateMovement();
-				return;
-			}
-			case "ATK": {
-				automateShooting();
-				checkForNewTarget();
-				return;
-			}
-    	}
+        updateProjectileList();
+        currentState.update(this);
     }
-    
-    public void updateMovement() {
+
+    public void setState(IUnitState<CombatUnit> newState) {
+        if (currentState != null) currentState.onExit(this);
+        currentState = newState;
+        currentState.onEnter(this);
+    }
+
+    ///  ------------------------------
+
+    /**
+     * Movement section
+     * Same code as CombatUnit handle basic movement
+     */
+    @Override
+    public void updateMoveToLocation() {
         if (isMoving) {
         	
             // done with path
@@ -138,7 +146,7 @@ public class CombatUnit extends AbstractUnit implements IControllable {
                 
                 path = null;
                 // go back to IDL state
-                currentState = states[0];
+                issueCommand(CommandType.IDLE, null);
                 return;
             }
         	
@@ -187,6 +195,7 @@ public class CombatUnit extends AbstractUnit implements IControllable {
         }
 	}
 
+    @Override
     // Set a new target and compute velocity so we move toward it.
     public void moveTo(float newX, float newY, Camera camera ) {
     	
@@ -202,6 +211,7 @@ public class CombatUnit extends AbstractUnit implements IControllable {
     	
         // Validate destination
         if (map.intArr[end.y][end.x] == 1) {
+            Logger.log("Destination is blocked.");
             System.out.println("Destination is blocked.");
             //end = getRandomNearbyPoint(end, 3); // Try within a range of 2
             return;
@@ -212,13 +222,13 @@ public class CombatUnit extends AbstractUnit implements IControllable {
         //map.printer();
         
         if (path == null || path.isEmpty()) {
+            Logger.log("No path found.");
             System.out.println("No path found.");
             return;
         }
     	
         currentIndex = 0;
         isMoving = true; // is moving order is ongoing
-        currentState = states[1];
     }
 
     // Handles when the next cell is blocked
@@ -238,7 +248,7 @@ public class CombatUnit extends AbstractUnit implements IControllable {
                     stopMovement();
                     // the path might be blocked indefinitely
                     // go back to IDL state
-                    currentState = states[0];
+                    issueCommand(CommandType.IDLE, null);
                     return;
                 } 
                 
@@ -266,8 +276,7 @@ public class CombatUnit extends AbstractUnit implements IControllable {
            map.intArr[currentNode.y][currentNode.x] = 0;
         }
     }
-    
-    // -------------------------------
+
     private Vector2Int getRandomNearbyPoint(Vector2Int original, int range) {
         int newX, newY;
         Vector2Int randomPoint;
@@ -286,7 +295,6 @@ public class CombatUnit extends AbstractUnit implements IControllable {
                point.y >= 0 && point.y < map.intArr.length &&
                map.intArr[point.y][point.x] == 0; // Check if walkable
     }
-    // -------------------------------------
 
     // Stops movement and resets relevant states
     private void stopMovement() {
@@ -298,6 +306,33 @@ public class CombatUnit extends AbstractUnit implements IControllable {
         path = null;
     }
 
+    // End the path at next step
+    @Override
+    public void endPathEarly(){
+        // if there's no “next” step, just bail out and stop completely
+        if (path == null || currentIndex >= path.size() - 1) {
+            stopMovement();
+            return;
+        }
+
+        // build a new path list containing only that one step
+        List<Vector2Int> newPath = new ArrayList<>();
+        newPath.add(path.get(currentIndex));
+        newPath.add(path.get(currentIndex + 1));
+        path = newPath;
+
+        // reset movement command and finish path
+        currentIndex = 0;
+        vel_x = 0;
+        vel_y = 0;
+        isMoving = true;
+        currentCommand = CommandType.MOVE;
+    }
+
+    /**
+     * UnitSensing And Shooting
+     */
+    @Override
 	public void updateUnitSensing() {
 		List<EnemyUnit> eul = EnemyUnitManager.unitList;
 		float max = (float) Double.MAX_VALUE;
@@ -320,7 +355,8 @@ public class CombatUnit extends AbstractUnit implements IControllable {
 		
 		// check for automate shoot
 		if (targetEnemyUnit != null) {
-			currentState = states[2]; // to ATK state
+			//currentState = states[2]; // to ATK state
+            issueCommand(CommandType.ATTACK, null);
 			//System.out.println(targetEnemyUnit.toString());
 		}
 	}
@@ -343,6 +379,7 @@ public class CombatUnit extends AbstractUnit implements IControllable {
 			updateUnitSensing();
 		}
 	}
+
 
 
     // -----------------------------------

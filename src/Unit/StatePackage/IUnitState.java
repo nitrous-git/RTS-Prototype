@@ -1,10 +1,12 @@
 package Unit.StatePackage;
 
+import GameObjects.Entity;
+import Unit.AbstractUnit;
 import Unit.WorkerUnit;
 
-public interface IUnitState {
-    void onEnter(WorkerUnit unit);
-    void update(WorkerUnit unit);
-    void onExit(WorkerUnit unit);
+public interface IUnitState<U extends AbstractUnit> {
+    void onEnter(U unit);
+    void update(U unit);
+    void onExit(U unit);
 }
 

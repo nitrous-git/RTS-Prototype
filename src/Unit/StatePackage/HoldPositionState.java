@@ -1,24 +1,21 @@
 package Unit.StatePackage;
 
 import Unit.AbstractUnit;
-import Unit.WorkerUnit;
-/*
-* Generalize IdleState over any AbstractUnit
-* */
-public class IdleState<U extends AbstractUnit> implements IUnitState<U> {
 
+public class HoldPositionState<U extends AbstractUnit> implements IUnitState<U> {
 
-    public IdleState() { }
+    public HoldPositionState() { }
 
     @Override
     public void onEnter(U unit) {
+        unit.endPathEarly();
     }
 
     @Override
     public void update(U unit) {
-        unit.updateUnitSensing();
     }
 
     @Override
     public void onExit(U unit) { }
+
 }

@@ -3,16 +3,19 @@ package EventHandler;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
+import java.util.Locale;
 
 import Building.Barracks;
+import Building.CommandCenter;
 import Command.CommandType;
 import Manager.PlayerUnitManager;
 import Panel.CommandPanel;
 import Panel.GamePanel;
-import Resource.BuildingType;
+import Building.BuildingType;
 import Resource.UnitType;
 import Unit.AbstractUnit;
 import Unit.IControllable;
+import Util.Logger;
 
 public class CommandActionListener implements ActionListener {
 
@@ -38,13 +41,19 @@ public class CommandActionListener implements ActionListener {
         }
 
 		// Command Center Event
-		if (source == cp.workerUnitTraining) { }
+		if (source == cp.workerUnitTraining) {
+			if (cp.getSelectedEntity() instanceof CommandCenter) { // don't even need to check...
+				((CommandCenter)cp.getSelectedEntity()).produce(UnitType.WORKER);
+			}
+		}
 
 		// AbstractBuilding Shared Event
 		if (source == cp.setWaypoint) {
+			Logger.log("Set Waypoint - to implement");
 			System.out.println("Set Waypoint - to implement");
 		}
 	    if (source == cp.cancelLastQueue) {
+			Logger.log("Cancel Last Queued Unit - to implement");
 		    System.out.println("Cancel Last Queued Unit - to implement");
 	    }
 
@@ -71,7 +80,7 @@ public class CommandActionListener implements ActionListener {
 		}
 		if (source == cp.cancel) {
 			cp.MH.setMode(MouseEventHandler.Mode.SELECTION);
-			cp.setCommandsForUnit(PlayerUnitManager.getSelectedUnitList());
+			cp.setNoSelectionCommand();
 			gp.PUM.clearMovementHelper();
 			gp.BM.clearPlacementHelper();
 		}
@@ -99,7 +108,21 @@ public class CommandActionListener implements ActionListener {
 		}
 		if (source == cp.supplyDepotConstruct) {
 			cp.setWaitCommand();
+			cp.MH.setMode(MouseEventHandler.Mode.PLACEMENT);
+			cp.MH.setCurrentBuildingType(BuildingType.SUPPLY_DEPOT);
 		}
+
+		if (source == cp.commandCenterConstruct) {
+			cp.setWaitCommand();
+			cp.MH.setMode(MouseEventHandler.Mode.PLACEMENT);
+			cp.MH.setCurrentBuildingType(BuildingType.COMMAND_CENTER);
+		}
+
+		if (source == cp.cancelConstruction) {
+			Logger.log("Cancel Construction - to implement");
+			System.out.println("Cancel Construction - to implement - from CommandActionListener");
+		}
+
 
 	}
 }	 

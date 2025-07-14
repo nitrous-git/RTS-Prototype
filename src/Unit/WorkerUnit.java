@@ -1,31 +1,30 @@
 package Unit;
 
 import Building.AbstractBuilding;
-import Building.Barracks;
+import Building.BuildingType;
+import Building.CommandCenter;
 import Command.CommandContext;
 import Command.CommandType;
 import Manager.BuildingManager;
 import Manager.PlayerUnitManager;
+import Manager.ResourceManager;
 import Panel.GamePanel;
 import Pathfind.Pathfinder;
-import Resource.BuildingType;
-import Resource.Cost;
-import Resource.ResourceType;
+import Resource.*;
 import Unit.StatePackage.*;
-import Util.Camera;
-import Util.TileMap;
-import Util.Vector2;
-import Util.Vector2Int;
+import Util.*;
 
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class WorkerUnit extends AbstractUnit implements IControllable {
 
-    // Declarations
+    /// Declarations
     protected GamePanel gp;
     protected BuildingManager BM;
+    protected ResourceManager RM;
     protected CommandType currentCommand;
     protected CommandContext ctx;
 
@@ -35,6 +34,9 @@ public class WorkerUnit extends AbstractUnit implements IControllable {
 
     // Type of resource WorkerUnit is currently gathering
     public ResourceType currentGatherType;
+    public final int carryCapacity = 10;
+    public int carryLoad = 0;
+    public int quantity = 1;
 
     Pathfinder pf;
     TileMap map; // Reference to the game map
@@ -48,14 +50,15 @@ public class WorkerUnit extends AbstractUnit implements IControllable {
     private long blockStartTime = 0; // Timer for handling blocked cells
     private boolean isWaiting = false; // Indicates if the unit is waiting for a cell to clear
 
-    private AbstractBuilding constructionBuildingRef;
+    private AbstractBuilding buildingRef;
     private AbstractUnit repairUnitRef;
-    //private AbstractResource resourceGatherRef; eventually...
+    private ResourceNode resourceNodeRef;
+    private boolean commandCenterDeployed;
 
-    private IUnitState currentState;
+    private IUnitState<WorkerUnit> currentState;
 
     // Constructor
-    public WorkerUnit(TileMap map, BuildingManager BM, GamePanel gp, float x, float y, int width, int height) {
+    public WorkerUnit(TileMap map, BuildingManager BM, ResourceManager RM, GamePanel gp, float x, float y, int width, int height) {
         super(x, y, width, height);
         this.selected = false;
         this.isMoving = false;
@@ -65,12 +68,13 @@ public class WorkerUnit extends AbstractUnit implements IControllable {
         currentHealth = maxHealth;
 
         this.BM = BM;
+        this.RM = RM;
         this.map = map;
         this.gp = gp;
         pf = new Pathfinder();
 
         this.currentNode = GamePanel.convertWorldToCell(x, y);
-        this.currentState = new IdleState();
+        this.currentState = new IdleState<WorkerUnit>();
         issueCommand(CommandType.IDLE, null);
     }
 
@@ -81,14 +85,14 @@ public class WorkerUnit extends AbstractUnit implements IControllable {
             // draw a highlight if selected
             if (selected) {
                 // draw a border around the oval
-                g.setColor(Color.CYAN);
+                g.setColor(GameColors.UNIT_HIGHLIGHT);
                 g.drawOval((int)(((x - 2) - camera.getX()) * camera.scaleX),
                         (int)(((y - 2) - camera.getY()) * camera.scaleY),
                         (int)((width + 4) * camera.scaleX),
                         (int)((height + 4) * camera.scaleY));
             }
 
-            g.setColor(Color.LIGHT_GRAY);
+            g.setColor(GameColors.UNIT_PLAYER_WORKER);
             g.fillOval( (int)((x - camera.getX()) * camera.scaleX),
                     (int)((y - camera.getY()) * camera.scaleY),
                     (int)(width * camera.scaleX),
@@ -115,22 +119,175 @@ public class WorkerUnit extends AbstractUnit implements IControllable {
         this.ctx = ctx;
 
         switch (currentCommand) {
-            case IDLE -> setState(new IdleState());
-            case MOVE -> setState(new MoveState(ctx.getX(), ctx.getY(), ctx.getCamera()));
-            case HOLD_POSITION -> endPathEarly();
-            case CONSTRUCT -> setState(new ConstructState(ctx.getBuildingType(), ctx.getCellPos()));
+            case IDLE -> setState(new IdleState<WorkerUnit>());
+            case MOVE -> setState(new MoveState<WorkerUnit>(ctx.getX(), ctx.getY(), ctx.getCamera()));
+            case HOLD_POSITION -> setState(new HoldPositionState<WorkerUnit>());
             case REPAIR -> setState(new RepairState(ctx.getCellPos()));
-            //case GATHER -> setState(new GatherState(ctx.getTargetResource())); return;
+            case GATHER -> setState(new GatherState(ctx.getResourceType(), ctx.getCellPos()));
+            case DELIVER -> setState(new DeliverState(ctx.getResourceType(), ctx.getCellPos()));
         }
     }
 
+    @Override
     // update command on every ticks
     public void update() { currentState.update(this); }
 
-    public void setState(IUnitState newState) {
+    public void setState(IUnitState<WorkerUnit> newState) {
         if (currentState != null) currentState.onExit(this);
         currentState = newState;
         currentState.onEnter(this);
+    }
+
+    /// -----------------------------------
+
+    /**
+     * Deliver section
+     */
+    public void updateDelivery() {
+        updateMoveToLocation();
+        if (!isMoving && commandCenterDeployed) {
+            triggerTimedResourceDelivery();
+        }
+    }
+
+    public void startDelivery() {
+        buildingRef = findNearestCommandCenter();
+        commandCenterDeployed = buildingRef != null;
+        if (commandCenterDeployed) {
+            Vector2Int cellPos = GamePanel.convertWorldToCell(buildingRef.getX(), buildingRef.getY());
+            ctx = new CommandContext().setDelivery(ctx.getResourceType(), cellPos);
+            moveToCommandCenterSite();
+        }
+        else {
+            // back to idle
+            Logger.log("No CommandCenter has been deployed.");
+            System.out.println("No CommandCenter has been deployed.");
+        }
+    }
+
+    public void endDelivery() {
+        commandCenterDeployed = false;
+        buildingRef = null;
+    }
+
+    public void moveToCommandCenterSite(){
+        List<Vector2Int> freeCellList = findAllAdjacentFree(map, ctx.getCellPos(), CommandCenter.WIDTH_TILES, CommandCenter.HEIGHT_TILES);
+        this.start = GamePanel.convertWorldToCell(this.x, this.y);
+        this.end = freeCellList.get(ThreadLocalRandom.current().nextInt(freeCellList.size()));
+
+        if (map.intArr[end.y][end.x] == 1) {
+            Logger.log("CommandCenter site is blocked.");
+            System.out.println("CommandCenter site is blocked.");
+            return;
+        }
+
+        path = pf.FindPath(map.intArr, start, end);
+
+        if (path == null || path.isEmpty()) {
+            Logger.log("No path found.");
+            System.out.println("No path found.");
+            return;
+        }
+
+        currentIndex = 0;
+        isMoving = true;
+    }
+
+    public void triggerTimedResourceDelivery(){
+        deliverTimer++;
+        if (deliverTimer%15 == 0) {
+            if (carryLoad > 0) {
+                carryLoad--;
+                gp.RM.add(currentGatherType, 1);
+            }
+            else if (carryLoad <= 0) {
+                //System.out.println("Delivery Over");
+                if (resourceNodeRef != null) {
+                    Vector2Int cellPos = GamePanel.convertWorldToCell(resourceNodeRef.getX(), resourceNodeRef.getY());
+                    ctx = new CommandContext().setGathering(currentGatherType, cellPos);
+                    issueCommand(CommandType.GATHER, ctx);
+                } else {
+                    issueCommand(CommandType.IDLE, null);
+                    Logger.log("ResourceNode depleted, assign new location.");
+                    System.out.println("ResourceNode depleted, assign new location.");
+                }
+            }
+        }
+    }
+
+    private AbstractBuilding findNearestCommandCenter() {
+        AbstractBuilding nearest = null;
+        float bestDist = Float.MAX_VALUE;
+        for (AbstractBuilding b : BuildingManager.buildingList) {
+            if (b.TYPE == BuildingType.COMMAND_CENTER) {
+                float d = calculateDistance(b.getX(), b.getY());
+                if (d < bestDist) {
+                    bestDist = d;
+                    nearest = b;
+                }
+            }
+        }
+        return nearest;
+    }
+
+
+
+    /**
+     * Gather section
+     */
+    public void updateGather() {
+        updateMoveToLocation();
+        if (!isMoving && resourceNodeRef != null) {
+            triggerTimedResourceGathering();
+        }
+    }
+
+    public void startGather() {
+        setCurrentGatherType(ctx.getResourceType());
+        moveToResourceNodeSite();
+    }
+
+    public void endGather() {
+        if (resourceNodeRef.isDepleted() && resourceNodeRef != null) {
+            resourceNodeRef = null;
+        }
+    }
+
+    public void moveToResourceNodeSite(){
+        List<Vector2Int> freeCellList = findAllAdjacentFree(map, ctx.getCellPos(), 1, 1);
+        this.start = GamePanel.convertWorldToCell(this.x, this.y);
+        this.end = freeCellList.get(2);
+
+        if (map.intArr[end.y][end.x] == 1) {
+            Logger.log("ResourceNode site is blocked.");
+            System.out.println("ResourceNode site is blocked.");
+            return;
+        }
+
+        path = pf.FindPath(map.intArr, start, end);
+
+        if (path == null || path.isEmpty()) {
+            Logger.log("No path found.");
+            System.out.println("No path found.");
+            return;
+        }
+
+        currentIndex = 0;
+        isMoving = true;
+    }
+
+    public void triggerTimedResourceGathering(){
+        gatherTimer++;
+        if (gatherTimer%15 == 0) {
+            if (carryLoad < carryCapacity && !resourceNodeRef.isDepleted()) {
+                carryLoad++;
+                resourceNodeRef.extract(quantity);
+            }
+            if (carryLoad >= carryCapacity || resourceNodeRef.isDepleted()) {
+                // full -> time to deliver
+                issueCommand(CommandType.DELIVER, ctx);
+            }
+        }
     }
 
     /**
@@ -143,11 +300,10 @@ public class WorkerUnit extends AbstractUnit implements IControllable {
         }
     }
 
-    public void startRepair() {
-        moveToRepairSite();
-    }
+    public void startRepair() { moveToRepairSite(); }
 
     public void endRepair(){
+        Logger.log("EndRepair from WorkerUnit.");
         System.out.println("EndRepair from WorkerUnit");
         repairUnitRef = null;
     }
@@ -158,7 +314,7 @@ public class WorkerUnit extends AbstractUnit implements IControllable {
         this.end = freeCellList.get(2);
 
         if (map.intArr[end.y][end.x] == 1) {
-            System.out.println("Construction site is blocked.");
+            System.out.println("Repair site is blocked.");
             return;
         }
 
@@ -180,70 +336,12 @@ public class WorkerUnit extends AbstractUnit implements IControllable {
                 repairUnitRef.addHealth(3);
             }else {
                 repairUnitRef.currentHealth = repairUnitRef.getMaxHealth();
-                setState(new IdleState());
+                setState(new IdleState<WorkerUnit>());
             }
         }
     }
 
-    ///  ------------------------------
-
-    /**
-     * Construction section
-     * handle the construction of building on command
-     */
-    public void updateConstruction() {
-        updateMoveToLocation();
-        if (!isMoving && constructionBuildingRef != null) {
-            if (constructionBuildingRef.currentState != AbstractBuilding.State.IN_OPERATION) {
-                constructionBuildingRef.currentState = AbstractBuilding.State.UNDER_CONSTRUCTION;
-            }
-        }
-    }
-
-    public void startConstruction() {
-        moveToConstructionSite();
-        // No reference = creating a new building
-        // otherwise moveToConstructionSite and resume construction
-        if (constructionBuildingRef == null) {
-            switch (ctx.getBuildingType()){
-                case BARRACKS -> constructBarracks(ctx.getCellPos());
-                case SUPPLY_DEPOT -> constructSupplyDepot(ctx.getCellPos());
-                case COMMAND_CENTER -> constructCommandCenter(ctx.getCellPos());
-            }
-        }
-    }
-
-    public void endConstruction(){
-        System.out.println("EndConstruction from WorkerUnit");
-        if (constructionBuildingRef.isUnderConstruction()) {
-            System.out.println("UnderConstruction from WorkerUnit");
-            constructionBuildingRef.currentState = AbstractBuilding.State.PRE_DEPLOYMENT;
-        }
-        constructionBuildingRef = null;
-    }
-
-    public void moveToConstructionSite(){
-        List<Vector2Int> freeCellList = findAllAdjacentFree(map, ctx.getCellPos(), Barracks.WIDTH_TILES, Barracks.HEIGHT_TILES);
-        this.start = GamePanel.convertWorldToCell(this.x, this.y);
-        this.end = freeCellList.get(0);
-
-        if (map.intArr[end.y][end.x] == 1) {
-            System.out.println("Construction site is blocked.");
-            return;
-        }
-
-        path = pf.FindPath(map.intArr, start, end);
-
-        if (path == null || path.isEmpty()) {
-            System.out.println("No path found.");
-            return;
-        }
-
-        currentIndex = 0;
-        isMoving = true;
-    }
-
-    // Collects all valid free cells around a w×h building footprint
+    // Collects all valid free cells around a w×h footprint
     private List<Vector2Int> findAllAdjacentFree(TileMap map, Vector2Int buildPos, int w, int h) {
         List<Vector2Int> border = new ArrayList<>();
 
@@ -275,51 +373,6 @@ public class WorkerUnit extends AbstractUnit implements IControllable {
         }
 
         return freeCells;
-    }
-
-    /**
-     * Construct a building
-     * If we can’t afford it -> do nothing
-     */
-    public void construct(AbstractBuilding b, Vector2Int startPos) {
-        BuildingType type = b.TYPE;
-        Cost cost = type.getCost();
-        if (!gp.RM.canAfford(cost)) {
-            System.out.println("Not enough resources for " + type + " building");
-            constructionBuildingRef = null;
-            return;
-        }
-
-        // spend resource, construct
-        gp.RM.spend(cost);
-        // change to .add to a list<AbstractBuilding>, not just Barracks cast
-        BuildingManager.buildingList.add((Barracks) b);
-
-        // If it's a supply‐providing building, bump the cap
-        if (type.getSupplyProvided() > 0) {
-            gp.RM.increaseMaxSupply(type.getSupplyProvided());
-        }
-        System.out.println("Built " + type
-                + " | Minerals left: " + gp.RM.get(ResourceType.MINERAL)  + " | Supply: " + gp.RM.getUsedSupply() + "/" + gp.RM.getMaxSupply());
-    }
-
-    public void constructBarracks(Vector2Int startPos) {
-        // convert back to world size after snap
-        Vector2 startf = GamePanel.convertCellToWorld(startPos.x, startPos.y);
-        if (BM.isValidPlacement(startPos, Barracks.WIDTH_TILES, Barracks.HEIGHT_TILES)) {
-            constructionBuildingRef = new Barracks(map, gp, startf.x, startf.y);
-            constructionBuildingRef.setTag("Barracks");
-            constructionBuildingRef.setID(startPos.x*startPos.y); // ID is the index of start point inside the grid
-            construct(constructionBuildingRef, ctx.getCellPos());
-        }
-    }
-
-    public void constructSupplyDepot(Vector2Int startPos) {
-        // pass
-    }
-
-    public void constructCommandCenter(Vector2Int startPos) {
-        // pass
     }
 
     ///  ------------------------------
@@ -405,6 +458,7 @@ public class WorkerUnit extends AbstractUnit implements IControllable {
 
         // Validate destination
         if (map.intArr[end.y][end.x] == 1) {
+            Logger.log("Destination is blocked.");
             System.out.println("Destination is blocked.");
             //end = getRandomNearbyPoint(end, 3); // Try within a range of 2
             return;
@@ -415,6 +469,7 @@ public class WorkerUnit extends AbstractUnit implements IControllable {
         //map.printer();
 
         if (path == null || path.isEmpty()) {
+            Logger.log("No path found.");
             System.out.println("No path found.");
             return;
         }
@@ -441,7 +496,7 @@ public class WorkerUnit extends AbstractUnit implements IControllable {
                     stopMovement();
                     // the path might be blocked indefinitely
                     // go back to IDL command
-                    currentCommand = CommandType.IDLE;
+                    issueCommand(CommandType.IDLE, null);
                     return;
                 }
 
@@ -500,7 +555,8 @@ public class WorkerUnit extends AbstractUnit implements IControllable {
     }
 
     // End the path at next step
-    private void endPathEarly(){
+    @Override
+    public void endPathEarly(){
         // if there's no “next” step, just bail out and stop completely
         if (path == null || currentIndex >= path.size() - 1) {
             stopMovement();
@@ -522,7 +578,6 @@ public class WorkerUnit extends AbstractUnit implements IControllable {
     }
 
 
-
     // -----------------------------------
     // Getter & Setter
     @Override
@@ -540,10 +595,24 @@ public class WorkerUnit extends AbstractUnit implements IControllable {
         this.repairUnitRef = repairUnitRef;
     }
 
-    public void setConstructionBuildingRef(AbstractBuilding constructionBuildingRef){
-        System.out.println("constructionBuildingRef set to : " + constructionBuildingRef.toString());
-        this.constructionBuildingRef = constructionBuildingRef;
+    public void setConstructionBuildingRef(AbstractBuilding buildingRef){
+        System.out.println("constructionBuildingRef set to : " + buildingRef.toString());
+        this.buildingRef = buildingRef;
     }
+
+    public void setResourceNodeRef(ResourceNode resourceNodeRef){
+        System.out.println("resourceNodeRef set to : " + resourceNodeRef.toString());
+        this.resourceNodeRef = resourceNodeRef;
+    }
+
+    public void setCurrentGatherType(ResourceType currentGatherType){
+        this.currentGatherType = currentGatherType;
+    }
+
+    public ResourceType getCurrentGatherType(){
+        return currentGatherType;
+    }
+
 
     // -----------------------------------
     // pretty printing

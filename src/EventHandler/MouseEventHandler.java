@@ -7,7 +7,8 @@ import javax.swing.SwingUtilities;
 import Building.AbstractBuilding;
 import Command.CommandContext;
 import Command.CommandType;
-import Resource.BuildingType;
+import Manager.ResourceManager;
+import Building.BuildingType;
 import Unit.AbstractUnit;
 import Panel.CommandPanel;
 import Panel.GamePanel;
@@ -29,10 +30,19 @@ public class MouseEventHandler implements MouseListener, MouseMotionListener {
 
     public BuildingType currentBuildingType;
 
+    private final List<SelectionHandler> handlers;
+
     // Constructor 
     public MouseEventHandler(GamePanel gamePanel, CommandPanel commandPanel) {    
         this.gamePanel = gamePanel;
         this.commandPanel = commandPanel;
+
+        this.handlers = List.of(
+                new UnitSelectionHandler(),
+                new BuildingSelectionHandler(),
+                new ResourceSelectionHandler(),
+                new NoSelectionHandler()
+        );
     }
 
 	// --- Event Handler interface method --- //
@@ -70,9 +80,9 @@ public class MouseEventHandler implements MouseListener, MouseMotionListener {
 
         // If the unit is selected, move it 
         if (SwingUtilities.isRightMouseButton(e)) {
-        	List<AbstractUnit> units = PlayerUnitManager.unitList;
+        	List<AbstractUnit> units = PlayerUnitManager.getSelectedUnitList();
             for (AbstractUnit unit : units) {
-                if (unit instanceof IControllable controllable && controllable.isSelected()) {
+                if (unit instanceof IControllable controllable) {
                     CommandContext ctx;
                     //System.out.println(currentMode);
                     switch (currentMode){
@@ -80,10 +90,14 @@ public class MouseEventHandler implements MouseListener, MouseMotionListener {
                             spawnQuickBoxSelection(cx, cy);
                             PlayerUnitManager.quickSelection = null;
                             BuildingManager.quickSelection = null;
+                            ResourceManager.quickSelection = null;
                             gamePanel.PUM.checkQuickBoxSelection(gamePanel.SB);
                             gamePanel.BM.checkQuickBoxSelection(gamePanel.SB);
+                            gamePanel.RM.checkQuickBoxSelection(gamePanel.SB);
 
-                            if (PlayerUnitManager.quickSelection == null && BuildingManager.quickSelection == null ) {
+                            if (PlayerUnitManager.quickSelection == null
+                                && BuildingManager.quickSelection == null
+                                && ResourceManager.quickSelection == null) {
                                 // normal moveTo single or multiple units
                                 ctx = new CommandContext().setDestination(worldX, worldY, gamePanel.camera);
                                 controllable.issueCommand(CommandType.MOVE, ctx);
@@ -100,84 +114,74 @@ public class MouseEventHandler implements MouseListener, MouseMotionListener {
                             if (BuildingManager.quickSelection != null){
                                 if (unit instanceof WorkerUnit wu) {
                                     Vector2Int cellStartPos = GamePanel.convertWorldToCell(worldX, worldY);
-                                    ctx = new CommandContext().setConstruction(currentBuildingType, cellStartPos);
-                                    controllable.issueCommand(CommandType.CONSTRUCT, ctx);
+                                    // back to delivery
+                                    // back to delivery
+                                    ctx = new CommandContext().setDelivery(wu.currentGatherType, cellStartPos);
+                                    controllable.issueCommand(CommandType.DELIVER, ctx);
                                     wu.setConstructionBuildingRef(BuildingManager.quickSelection);
                                 }
                             }
+                            if (ResourceManager.quickSelection != null){
+                                if (unit instanceof WorkerUnit wu) {
+                                    Vector2Int cellStartPos = GamePanel.convertWorldToCell(worldX, worldY);
+                                    ctx = new CommandContext().setGathering(ResourceManager.quickSelection.getType(), cellStartPos);
+                                    controllable.issueCommand(CommandType.GATHER, ctx);
+                                    wu.setResourceNodeRef(ResourceManager.quickSelection);
+                                }
+                            }
+
 
                             // cleanup
                             setMode(Mode.SELECTION);
                             commandPanel.setCommandsForUnit(PlayerUnitManager.getSelectedUnitList());
-                            return;
+                            break;
                         case MOVE:
+                            //System.out.println("UnitMove : "+ unit.toString());
                             ctx = new CommandContext().setDestination(worldX, worldY, gamePanel.camera);
                             controllable.issueCommand(CommandType.MOVE, ctx);
                             setMode(Mode.SELECTION);
                             commandPanel.setCommandsForUnit(PlayerUnitManager.getSelectedUnitList());
                             gamePanel.PUM.clearMovementHelper();
-                            return;
-                        case ATTACK: return;
-                        case PLACEMENT:
-                            Vector2Int cellStartPos = GamePanel.convertWorldToCell(worldX, worldY);
-                            ctx = new CommandContext().setConstruction(currentBuildingType, cellStartPos);
-                            controllable.issueCommand(CommandType.CONSTRUCT, ctx);
-                            // reset back to selection mode
-                            //commandPanel.setCommandsForUnit(PlayerUnitManager.getSelectedUnitList());
-                            gamePanel.BM.clearPlacementHelper();
-                            setMode(Mode.SELECTION);
-                            // wait after construction for gamePanel.BM.clearPlacementHelper(); inside WorkerUnit class
-                            return;
+                            break;
+                        case ATTACK: break;
                         case REPAIR:
-
                             // cleanup
                             setMode(Mode.SELECTION);
                             commandPanel.setCommandsForUnit(PlayerUnitManager.getSelectedUnitList());
                             gamePanel.PUM.clearMovementHelper();
-                            return;
+                            break;
                     }
                 }
             }
         }
 
-        /*
-        if (SwingUtilities.isLeftMouseButton(e) && gamePanel.BM.getInPlacementMode()) {
+
+        if (SwingUtilities.isRightMouseButton(e) && currentMode == Mode.PLACEMENT) {
         	// snap to grid by integer division
         	Vector2Int startPos = GamePanel.convertWorldToCell(worldX, worldY);
-        	gamePanel.BM.construct(BuildingType.BARRACKS, startPos);
+        	gamePanel.BM.construct(currentBuildingType, startPos);
+            gamePanel.BM.clearPlacementHelper();
+            setMode(Mode.SELECTION);
+            commandPanel.setNoSelectionCommand();
 		}
-        */
+
     }
       
     // --- MouseMotionListener interface method --- //
 
     @Override
     public void mouseDragged(MouseEvent e) {
-    	if (SwingUtilities.isLeftMouseButton(e)) {
-    		// Enforce the unit-over-building policy in the selection box logic
-    		// just like Starcraft 1
-    		gamePanel.SB.updateSelection(e.getX(), e.getY());
-    		gamePanel.PUM.checkSelection(gamePanel.SB);
-            if (!PlayerUnitManager.getSelectedUnitList().isEmpty()){
-                // keep unit selection, set commands
-                commandPanel.setCommandsForUnit(PlayerUnitManager.getSelectedUnitList());
-            }
 
-			if (PlayerUnitManager.getSelectedUnitList().isEmpty()) {
-                // keep building selection, set commands
-                gamePanel.BM.checkSelection(gamePanel.SB);
-                // Building are always single
-                AbstractBuilding b = (AbstractBuilding) BuildingManager.getSelectedBuilding();
-                handleBuildingSelectionBox(b);
-			}
+        // Enforce the unit-over-building-resource policy in the selection box logic
+        // just like Starcraft 1
+        if (!SwingUtilities.isLeftMouseButton(e)) return;
 
-			if (!PlayerUnitManager.getSelectedUnitList().isEmpty() && BuildingManager.getSelectedBuilding() != null) {
-                // clear building, prioritize units
-				gamePanel.BM.clearSelectedBuilding();
-			}
-			 
-			gamePanel.repaint();
-    	}
+        SelectionBox sb = gamePanel.SB;
+        sb.updateSelection(e.getX(), e.getY());
+
+        for (SelectionHandler h : handlers) {
+            if (h.handle(sb)) break;
+        }
     }
 
     @Override
@@ -190,7 +194,7 @@ public class MouseEventHandler implements MouseListener, MouseMotionListener {
             case ATTACK:
                 return;
             case PLACEMENT:
-                gamePanel.BM.placementHelper(startPos);
+                gamePanel.BM.placementHelper(startPos, currentBuildingType);
                 return;
         }
 
@@ -219,7 +223,7 @@ public class MouseEventHandler implements MouseListener, MouseMotionListener {
             if (b.currentState == AbstractBuilding.State.IN_OPERATION) {
                 commandPanel.setCommandsForBuilding(b);
             } else {
-                commandPanel.setWaitCommand();
+                commandPanel.setWaitConstructionCommand();
             }
     }
 
@@ -242,5 +246,71 @@ public class MouseEventHandler implements MouseListener, MouseMotionListener {
 
     }
 
+
+
+    /*
+    * Turning each “priority” into a small handler,
+    * and then walking them in order until one “claims” the click.
+    * This is just the classic Chain-of-Responsibility pattern.
+    * used by the mouseDragged(MouseEvent e) mouse event method
+    * */
+
+    /// ---- inner classes ---- ///
+
+    private interface SelectionHandler {
+        /** @return true if this handler performed a selection (and thus stops the chain) */
+        boolean handle(SelectionBox sb);
+    }
+
+    private class UnitSelectionHandler implements SelectionHandler {
+        @Override
+        public boolean handle(SelectionBox sb) {
+            gamePanel.PUM.checkSelection(sb);
+            var units = PlayerUnitManager.getSelectedUnitList();
+            if (!units.isEmpty()) {
+                gamePanel.BM.clearSelectedBuilding();
+                gamePanel.RM.clearSelectedResources();
+                commandPanel.setCommandsForUnit(units);
+                return true;
+            }
+            return false;
+        }
+    }
+
+    private class BuildingSelectionHandler implements SelectionHandler {
+        @Override
+        public boolean handle(SelectionBox sb) {
+            gamePanel.BM.checkSelection(sb);
+            var b = BuildingManager.getSelectedBuilding();
+            if (b != null) {
+                gamePanel.RM.clearSelectedResources();
+                handleBuildingSelectionBox((AbstractBuilding) b);
+                return true;
+            }
+            return false;
+        }
+    }
+
+
+    private class ResourceSelectionHandler implements SelectionHandler {
+        @Override
+        public boolean handle(SelectionBox sb) {
+            gamePanel.RM.checkSelection(sb);
+            var nodes = ResourceManager.getSelectedResourceNodeList();
+            if (!nodes.isEmpty()) {
+                commandPanel.setWaitCommand();
+                return true;
+            }
+            return false;
+        }
+    }
+
+    private class NoSelectionHandler implements SelectionHandler {
+        @Override
+        public boolean handle(SelectionBox sb) {
+            commandPanel.setNoSelectionCommand();
+            return true;
+        }
+    }
 
 }

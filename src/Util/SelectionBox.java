@@ -42,7 +42,7 @@ public class SelectionBox {
             height = -dy;         // make height positive
         }
 
-        g2d.setColor(Color.BLUE);
+        g2d.setColor(GameColors.SELECTION_BOX);
         g2d.drawRect((int)(rectX - p.camera.getX()), (int)(rectY - p.camera.getY()), width, height);
     }
 	

@@ -6,6 +6,7 @@ import java.util.List;
 import GameObjects.Projectile;
 import Manager.PlayerUnitManager;
 import Util.Camera;
+import Util.GameColors;
 
 public class EnemyUnit extends AbstractUnit {
     
@@ -19,7 +20,7 @@ public class EnemyUnit extends AbstractUnit {
     @Override
     public void draw(Graphics g, Camera camera) {
         if (camera.captures(this) && !isDead()) {
-	        g.setColor(Color.RED);
+	        g.setColor(GameColors.UNIT_ENEMY_COMBAT);
 			g.fillOval( (int)((x - camera.getX()) * camera.scaleX),
 						(int)((y - camera.getY()) * camera.scaleY),
 						(int)(width * camera.scaleX),
@@ -61,7 +62,8 @@ public class EnemyUnit extends AbstractUnit {
 		automateShooting("enemy_projectile");
 		checkForNewTarget();
 	}
-    
+
+	@Override
     public void updateUnitSensing() {
 		List<AbstractUnit> pul = PlayerUnitManager.unitList;
 		float max = (float) Double.MAX_VALUE;

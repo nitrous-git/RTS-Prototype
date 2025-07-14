@@ -5,6 +5,7 @@ import java.util.List;
 
 import Building.AbstractBuilding;
 import Building.Barracks;
+import Building.CommandCenter;
 import EventHandler.CommandActionListener;
 import EventHandler.MouseEventHandler;
 import GameObjects.IEntity;
@@ -30,7 +31,7 @@ public class CommandPanel extends JPanel {
 
     public JButton moveTo, stop, attack, repair, gather, cancel;
     public JButton combatUnitTraining, workerUnitTraining, setWaypoint, cancelLastQueue, cancelConstruction;
-    public JButton buildMenu, barracksConstruct, supplyDepotConstruct;
+    public JButton buildMenu, barracksConstruct, supplyDepotConstruct, commandCenterConstruct;
 
 
     public CommandPanel(GamePanel gp) {
@@ -39,6 +40,7 @@ public class CommandPanel extends JPanel {
         setLayout(new GridLayout(3, 3, 4, 4));
         initButtons();
         CAL = new CommandActionListener(gp, this);
+        setNoSelectionCommand();
     }
 
     public void setCommandsForUnit(List<AbstractUnit> selectedUnitList) {
@@ -69,6 +71,10 @@ public class CommandPanel extends JPanel {
             this.selectedEntity = selected;
             setBarracksCommand();
         }
+        else if (selected instanceof CommandCenter){
+            this.selectedEntity = selected;
+            setComCenterCommand();
+        }
         else {
             clearAll();
         }
@@ -92,18 +98,32 @@ public class CommandPanel extends JPanel {
         repair = configureButton(1, 0, "R", CAL);
         // Gather
         gather = configureButton(1, 1, "G", CAL);
-        // To BuildMenu
-        buildMenu = configureButton(2, 0, "B", CAL);
     }
 
     public void setBuildCommand() {
         clearAll();
         // Barracks
         barracksConstruct = configureButton(0, 0, "B", CAL);
+        barracksConstruct.setToolTipText(
+                "<html><b>Barracks</b><br/>" +
+                        "Cost: 100 minerals<br/>"
+        );
         // Supply Depot
         supplyDepotConstruct = configureButton(0, 1, "S", CAL);
+        supplyDepotConstruct.setToolTipText(
+                "<html><b>Supply Depot</b><br/>" +
+                        "Cost: 100 minerals<br/>" +
+                        "Supply: +8</html>"
+        );
+        // Command Center
+        commandCenterConstruct = configureButton(0, 2, "C", CAL);
+        commandCenterConstruct.setToolTipText(
+                "<html><b>Command Center</b><br/>" +
+                        "Cost: 200 minerals<br/>"
+        );
         // Cancel
         cancel = configureButton(2, 2, "C", CAL);
+        cancel.setToolTipText("Cancel current build order");
     }
 
     public void setCombatUnitCommand() {
@@ -139,27 +159,41 @@ public class CommandPanel extends JPanel {
     public void setBarracksCommand() {
         // Combat unit training
         combatUnitTraining = configureButton(0, 0, "C", CAL);
+        combatUnitTraining.setToolTipText(
+                "<html><b>Combat Unit</b><br/>" +
+                        "Cost: 50 minerals<br/>" +
+                        "Supply: -1<br/>"
+        );
         // Set Waypoint
         setWaypoint = configureButton(1, 2, "W", CAL);
+        setWaypoint.setToolTipText("Set Waypoint");
         // Cancel
         cancelLastQueue = configureButton(2, 2, "C", CAL);
+        cancelLastQueue.setToolTipText("Cancel last queue");
     }
 
     public void setComCenterCommand() {
         // Worker unit training
         workerUnitTraining = configureButton(0, 0, "W", CAL);
+        workerUnitTraining.setToolTipText(
+                "<html><b>Worker Unit</b><br/>" +
+                        "Cost: 25 minerals<br/>" +
+                        "Supply: -1<br/>"
+        );
         // Set Waypoint
         setWaypoint = configureButton(1, 2, "W", CAL);
+        setWaypoint.setToolTipText("Set Waypoint");
         // Cancel
         cancel = configureButton(2, 2, "C", CAL);
+        cancel.setToolTipText("Cancel Last Queue");
     }
 
-
-
-
-
-
-
+    public void setNoSelectionCommand() {
+        clearAll();
+        // go to buildMenu
+        buildMenu = configureButton(2, 0, "B", CAL);
+        buildMenu.setToolTipText("To Build Menu");
+    }
 
 
 
@@ -192,6 +226,7 @@ public class CommandPanel extends JPanel {
                 JButton btn = buttons[row][col];
                 btn.setText("");
                 btn.setEnabled(false);
+                btn.setToolTipText(null);
                 for (ActionListener al : btn.getActionListeners()) {
                     btn.removeActionListener(al);
                 }

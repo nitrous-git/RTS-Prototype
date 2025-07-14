@@ -5,11 +5,7 @@ import Manager.BuildingManager;
 import Manager.EnemyUnitManager;
 import Manager.PlayerUnitManager;
 import Manager.ResourceManager;
-import Util.Camera;
-import Util.SelectionBox;
-import Util.TileMap;
-import Util.Vector2;
-import Util.Vector2Int;
+import Util.*;
 
 import java.awt.*;
 
@@ -62,10 +58,8 @@ public class GamePanel extends JPanel {
       PUM = new PlayerUnitManager(map, this);
       EUM = new EnemyUnitManager(map);
       BM = new BuildingManager(map, this);
-      RM = new ResourceManager();
+      RM = new ResourceManager(map, this);
 
-      // Dependence injection
-      PUM.setBuildingManager(BM);
     }
 
     // --- Graphics --- //
@@ -83,12 +77,16 @@ public class GamePanel extends JPanel {
     	PUM.draw(g, camera);
     	EUM.draw(g, camera);
     	BM.draw(g, camera);
+        RM.draw(g, camera);
+
+        Logger.render(g);
     }
     
     public void update() {
     	PUM.update();
     	EUM.update();
     	BM.update();
+        RM.update();
     	camera.update();
 		repaint();
 	}
@@ -100,15 +98,11 @@ public class GamePanel extends JPanel {
 	        for (int j = 0; j < COLS; j++) {
 	          if (map.tileArr[i][j] != null) {
 	        	  map.tileArr[i][j].draw(g, camera);
-	        	  
 	          }
-//	          if (map.pathHelper[i][j] != null) {
-//	        	  map.pathHelper[i][j].draw(g, camera);
-//			  }
 	          if (map.tileArrOverlay[i][j] != null) {
         		  map.tileArrOverlay[i][j].draw(g, camera);
 			  }
-			  g.setColor(Color.GRAY);
+			  g.setColor(GameColors.GRID_LINES);
 			  g.drawRect((int)(j*TILE_SIZE - camera.getX()), (int)(i*TILE_SIZE - camera.getY()), (int)TILE_SIZE, (int)TILE_SIZE);
 	        }
 	    }

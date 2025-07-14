@@ -5,8 +5,8 @@ ENTITY TOKEN :
 3 - SUPPLY_DEPOT
 4 - COMMAND_CENTER
 5 - WORKER_UNIT
-6 - ENEMY_WORKER_UNIT
-8 - ENEMY_COMBAT_UNIT
+6 - ENEMY_WORKER_UNIT, ENEMY_COMBAT_UNIT
+8 -
 9 - COMBAT_UNIT
 
 After that we will need to refactor the TileMap to include separator for arbitrary # of Entities

@@ -7,6 +7,7 @@ import Unit.EnemyUnit;
 import Manager.EnemyUnitManager;
 import Manager.PlayerUnitManager;
 import Util.Camera;
+import Util.GameColors;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -33,7 +34,9 @@ public class MinimapPanel extends JPanel {
                 boolean walkable = gp.map.isWalkable(x, y);
                 terrainImg.setRGB(x, y, walkable ? Color.LIGHT_GRAY.getRGB() : Color.DARK_GRAY.getRGB());
                 // change all of this... just check != 0 no isWalkable BS
-                if (gp.map.intArr[y][x] == 9 || gp.map.intArr[y][x] == 8 || gp.map.intArr[y][x] == 5) {
+                if (gp.map.intArr[y][x] == 9
+                        || gp.map.intArr[y][x] == 8
+                        || gp.map.intArr[y][x] == 5) {
                     terrainImg.setRGB(x, y, Color.LIGHT_GRAY.getRGB());
 				}
             }
@@ -64,7 +67,7 @@ public class MinimapPanel extends JPanel {
         float sy = h / worldH;
         
         // draw player units
-        g.setColor(Color.CYAN);
+        g.setColor(Color.BLUE);
         for (AbstractUnit u : PlayerUnitManager.unitList) {
             int px = (int)(u.getX() * sx);
             int py = (int)(u.getY() * sy);
@@ -89,7 +92,6 @@ public class MinimapPanel extends JPanel {
         g.drawRect(vx, vy, vw, vh);
     }
 
-    
     public void recenterCamera(int mx, int my) {
         // world size in pixels
         float worldW = mapCols  * tileSize;
@@ -104,14 +106,14 @@ public class MinimapPanel extends JPanel {
         float wy = my / sy;
 
         // size of viewport in world coords
-        float viewW = gp.WIDTH  / gp.camera.scaleX;
-        float viewH = gp.HEIGHT / gp.camera.scaleY;
+        float viewW = GamePanel.WIDTH / gp.camera.scaleX;
+        float viewH = GamePanel.HEIGHT / gp.camera.scaleY;
 
         // center the camera on the clicked point
         float camX = wx - viewW  / 2f;
         float camY = wy - viewH  / 2f;
         
-        // clamp so camera stays within [0 .. worldSize – viewSize]
+        // clamp so camera stays within [0 ... worldSize – viewSize]
         camX = Math.max(0, Math.min(camX, worldW - viewW));
         camY = Math.max(0, Math.min(camY, worldH - viewH));
 

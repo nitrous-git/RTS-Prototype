@@ -7,29 +7,26 @@ import java.util.List;
 
 import Building.AbstractBuilding;
 import Building.Barracks;
+import Building.CommandCenter;
+import Building.SupplyDepot;
 import GameObjects.IEntity;
 import GameObjects.Tile;
 import Panel.GamePanel;
-import Resource.BuildingType;
+import Building.BuildingType;
 import Resource.Cost;
 import Resource.ResourceType;
-import Unit.AbstractUnit;
-import Unit.IControllable;
-import Util.Camera;
-import Util.SelectionBox;
-import Util.TileMap;
-import Util.Vector2;
-import Util.Vector2Int;
+import Util.*;
 
 public class BuildingManager {
 
 	public boolean inPlacementMode;
 
-    public static List<Barracks> buildingList;
+    public static List<AbstractBuilding> buildingList;
 
 	// *** could probably be a AbstractBuilding instead of IEntity
     public static IEntity selectedBuilding; // only one selected building at the time
 	public static AbstractBuilding quickSelection;
+	int h, w = 0;
 
 	public boolean transactionAllowed;
 
@@ -43,7 +40,7 @@ public class BuildingManager {
 	public BuildingManager(TileMap map, GamePanel gp) {
 		this.map = map;
 		this.gp = gp;
-		buildingList = new ArrayList<Barracks>();
+		buildingList = new ArrayList<AbstractBuilding>();
 		tempTileList = new ArrayList<Tile>();
 		tempTileIndex = new ArrayList<Vector2Int>();
 		
@@ -51,7 +48,7 @@ public class BuildingManager {
 	}
 	
 	public void draw(Graphics g, Camera c) {
-		for (Barracks build : buildingList) {
+		for (AbstractBuilding build : buildingList) {
 			build.draw(g, c);
 		}
 	}
@@ -70,38 +67,33 @@ public class BuildingManager {
 	 * Construct a building
 	 * If we can’t afford it -> do nothing
 	 */
-	public void construct(AbstractBuilding b, Vector2Int startPos) {
-		BuildingType type = b.TYPE;
+	public void construct(BuildingType type, Vector2Int startPos) {
 		Cost cost = type.getCost();
 		if (!gp.RM.canAfford(cost)) {
+			Logger.log("Not enough resources for " + type + " building");
 			System.out.println("Not enough resources for " + type + " building");
-			transactionAllowed = false;
 			return;
 		}
-		transactionAllowed = true;
 
 		// spend resource, construct
 		gp.RM.spend(cost);
-		// change to .add to a list<AbstractBuilding>, not just Barracks cast
-		buildingList.add((Barracks) b);
-		/*
+
 		switch (type){
 			case BARRACKS -> addBarracks(startPos);
 			case SUPPLY_DEPOT -> addSupplyDepot(startPos);
 			case COMMAND_CENTER -> addCommandCenter(startPos);
 		}
 
-		//addBarracks(startPos);
-		*/
 		// If it's a supply‐providing building, bump the cap
 		if (type.getSupplyProvided() > 0) {
 			gp.RM.increaseMaxSupply(type.getSupplyProvided());
 		}
+		Logger.log("Built " + type
+				+ " | Minerals left: " + gp.RM.get(ResourceType.MINERAL)  + " | Supply: " + gp.RM.getUsedSupply() + "/" + gp.RM.getMaxSupply());
 		System.out.println("Built " + type
 				+ " | Minerals left: " + gp.RM.get(ResourceType.MINERAL)  + " | Supply: " + gp.RM.getUsedSupply() + "/" + gp.RM.getMaxSupply());
 	}
 
-	/*
     public void addBarracks(Vector2Int startPos) {
     	// convert back to world size after snap
     	Vector2 startf = GamePanel.convertCellToWorld(startPos.x, startPos.y);
@@ -114,13 +106,27 @@ public class BuildingManager {
     }
 
 	public void addSupplyDepot(Vector2Int startPos) {
-		// pass
+		// convert back to world size after snap
+		Vector2 startf = GamePanel.convertCellToWorld(startPos.x, startPos.y);
+		if (isValidPlacement(startPos, SupplyDepot.WIDTH_TILES, SupplyDepot.HEIGHT_TILES)) {
+			SupplyDepot supplyDepot = new SupplyDepot(map, gp, startf.x, startf.y);
+			supplyDepot.setTag("SupplyDepot");
+			supplyDepot.setID(startPos.x*startPos.y); // ID is the index of start point inside the grid
+			buildingList.add( supplyDepot );
+		}
 	}
 
 	public void addCommandCenter(Vector2Int startPos) {
-		// pass
+		// convert back to world size after snap
+		Vector2 startf = GamePanel.convertCellToWorld(startPos.x, startPos.y);
+		if (isValidPlacement(startPos, CommandCenter.WIDTH_TILES, CommandCenter.HEIGHT_TILES)) {
+			CommandCenter commandCenter = new CommandCenter(map, gp, this, startf.x, startf.y);
+			commandCenter.setTag("CommandCenter");
+			commandCenter.setID(startPos.x*startPos.y); // ID is the index of start point inside the grid
+			buildingList.add( commandCenter );
+		}
 	}
-	*/
+
 
 	public boolean isValidPlacement(Vector2Int startPos, int tileWidth, int tileHeight) {	
 		boolean isValid = true;
@@ -140,18 +146,19 @@ public class BuildingManager {
 	// visualize allowed placement on mouseMoved event
 	// we don't have the size of the building, call it in a wrapper
 	// and check which type of building were constructing
-	public void placementHelper(Vector2Int startPos){	
+	public void placementHelper(Vector2Int startPos, BuildingType type){
 		clearPlacementHelper();
 		Vector2 worldPos = GamePanel.convertCellToWorld(startPos.x, startPos.y);
 		Color tempColor;
-		
-    	for (int i = 0; i < Barracks.HEIGHT_TILES; i++) {
-		    for (int j = 0; j < Barracks.WIDTH_TILES; j++) {
+		Vector2Int dim = getPlacementDimension(type);
+
+    	for (int i = 0; i < dim.y; i++) {
+		    for (int j = 0; j < dim.x; j++) {
 		    	
 		    	if (map.intArr[startPos.y+i][startPos.x+j] != 0) {
 		    		tempColor = Color.DARK_GRAY;
 		    	}else {
-		    		tempColor = Color.GREEN;
+		    		tempColor = GameColors.BUILDING_PLACEMENT_TILE_HELPER;
 				}
 		    	map.tileArrOverlay[startPos.y+i][startPos.x+j] = new Tile(worldPos.x + j*(int)GamePanel.TILE_SIZE, 
 																worldPos.y + i*(int)GamePanel.TILE_SIZE, 
@@ -162,6 +169,28 @@ public class BuildingManager {
 		    }
     	}
 		
+	}
+
+	public Vector2Int getPlacementDimension (BuildingType type){
+		Vector2Int dim = null;
+		switch (type) {
+			case BARRACKS:
+				h = Barracks.HEIGHT_TILES;
+				w = Barracks.WIDTH_TILES;
+				dim = new Vector2Int(w, h);
+				return dim;
+			case SUPPLY_DEPOT:
+				h = SupplyDepot.HEIGHT_TILES;
+				w = SupplyDepot.WIDTH_TILES;
+				dim = new Vector2Int(w, h);
+				return dim;
+			case COMMAND_CENTER:
+				h = CommandCenter.HEIGHT_TILES;
+				w = CommandCenter.WIDTH_TILES;
+				dim = new Vector2Int(w, h);
+				return dim;
+		}
+		return dim;
 	}
 	
 	public void clearPlacementHelper() {
@@ -217,7 +246,7 @@ public class BuildingManager {
 	public boolean getInPlacementMode() { return inPlacementMode; }
 
 	public static IEntity getSelectedBuilding() {
-		for (Barracks building : buildingList) {
+		for (AbstractBuilding building : buildingList) {
 			if (building.isSelected()) {
 				return (IEntity)building;
 			}
