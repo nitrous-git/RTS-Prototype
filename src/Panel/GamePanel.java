@@ -9,7 +9,6 @@ import Util.*;
 
 import java.awt.*;
 
-@SuppressWarnings("serial")
 public class GamePanel extends JPanel {
 
     // window
