@@ -13,7 +13,7 @@ public class GamePanel extends JPanel {
 
     // window
     public static int WIDTH = 1000;
-    public static int HEIGHT = 500;
+    public static int HEIGHT = 600;
     public static float SCALE = 1.0f;
     
     // game grid
