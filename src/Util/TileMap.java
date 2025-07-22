@@ -5,6 +5,8 @@ import java.util.List;
 
 import GameObjects.Tile;
 import Panel.GamePanel;
+import Resource.ResourceNode;
+import Resource.ResourceType;
 
 /**
  * TileMap class
@@ -29,6 +31,7 @@ public class TileMap {
 
     public TileMap(){
     	fileReader();
+		generateTileMap();
     }
 
     public void fileReader() {
@@ -62,7 +65,7 @@ public class TileMap {
     public void printer() {
 		for (int i = 0; i < row-1; i++) {
 			for (int j = 0; j < column; j++) {
-				System.out.print(intArr[i][j]);
+				System.out.print(tileArr[i][j]);
 			}
 			System.out.println();
 		}

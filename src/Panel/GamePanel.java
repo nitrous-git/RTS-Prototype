@@ -1,10 +1,8 @@
 package Panel;
 import javax.swing.*;
 
-import Manager.BuildingManager;
-import Manager.EnemyUnitManager;
-import Manager.PlayerUnitManager;
-import Manager.ResourceManager;
+import Faction.FactionManager;
+import Resource.ResourceNodeRepository;
 import Util.*;
 
 import java.awt.*;
@@ -12,80 +10,55 @@ import java.awt.*;
 public class GamePanel extends JPanel {
 
     // window
-    public static int WIDTH = 1000;
-    public static int HEIGHT = 600;
-    public static float SCALE = 1.0f;
+    public final static int WIDTH = 1000;
+    public final static int HEIGHT = 600;
+    public final static float SCALE = 1.0f;
     
     // game grid
-    public static int ROWS = 69; 
-    public static int COLS = 155; 
-    public static float TILE_SIZE = 13;
-    
-    // camera
-    public Camera camera;
-    public int camera_scaling = 0;
-    
-    // SelectionBox unit 
-    public SelectionBox SB = new SelectionBox(this);
-    
-    // Managers
-    public PlayerUnitManager PUM;
-    public EnemyUnitManager EUM;
-    public BuildingManager BM;
-    public ResourceManager RM;
+    public final static int ROWS = 69;
+    public final static int COLS = 155;
+    public final static float TILE_SIZE = 13;
 
-    public SelectionPanel SP;
-    public CommandPanel CP;
-    
-    // tiled map
-    TileMap map = new TileMap();
+    public Camera camera;
+    public TileMap map;
+    public SelectionBox SB;
+    public FactionManager FM;
+    public ResourceNodeRepository RNR;
+
     
     // --- Constructor --- //
-    public GamePanel() {
-      setFocusable(true);
-      setBackground(Color.BLACK);
-      //System.out.println(TILE_SIZE);
-      setPreferredSize(new Dimension(WIDTH, HEIGHT));
-      
-      // camera
-      camera = new Camera(0, 0, WIDTH, HEIGHT, this);
-      
-      // map 
-      map.generateTileMap();
-      
-      // managers
-      PUM = new PlayerUnitManager(map, this);
-      EUM = new EnemyUnitManager(map);
-      BM = new BuildingManager(map, this);
-      RM = new ResourceManager(map, this);
+    public GamePanel(TileMap map, Camera camera, SelectionBox SB, FactionManager FM, ResourceNodeRepository RNR) {
+        setFocusable(true);
+        setBackground(Color.BLACK);
+        setPreferredSize(new Dimension(WIDTH, HEIGHT));
 
+        this.camera = camera;
+        this.map = map;
+        this.SB = SB;
+        this.FM = FM;
+        this.RNR = RNR;
     }
 
     // --- Graphics --- //
   	public void paintComponent(Graphics g) {
-      super.paintComponent(g);
-      draw_grid(g);
-      draw(g);
+        super.paintComponent(g);
+        draw_grid(g);
+        draw(g);
     
-      if (SB.dragging) {
-         SB.drawSelectionBox((Graphics2D) g);
-      }
+        if (SB.dragging) {
+           SB.drawSelectionBox((Graphics2D) g);
+        }
     }
 
     public void draw(Graphics g) {
-    	PUM.draw(g, camera);
-    	EUM.draw(g, camera);
-    	BM.draw(g, camera);
-        RM.draw(g, camera);
-
+        FM.drawAll(g, camera);
+        RNR.draw(g, camera);
         Logger.render(g);
     }
     
     public void update() {
-    	PUM.update();
-    	EUM.update();
-    	BM.update();
-        RM.update();
+        FM.updateAll();
+        RNR.update();
     	camera.update();
 		repaint();
 	}
@@ -126,6 +99,8 @@ public class GamePanel extends JPanel {
     }
 
     ///  GETTER AND SETTER ///
+
+    /*
     public SelectionPanel getSP() {
         return SP;
     }
@@ -141,4 +116,5 @@ public class GamePanel extends JPanel {
     public void setCP(CommandPanel CP) {
         this.CP = CP;
     }
+    */
 }

@@ -66,6 +66,7 @@ public class EnemyUnit extends AbstractUnit {
 	@Override
     public void updateUnitSensing() {
 		List<AbstractUnit> pul = PlayerUnitManager.unitList;
+		//System.out.println(pul.size());
 		float max = (float) Double.MAX_VALUE;
 		
 		targetPlayerUnit = null;

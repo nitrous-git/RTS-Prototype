@@ -5,9 +5,10 @@ import java.awt.Graphics;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import Faction.Faction;
 import Resource.Cost;
 import Resource.ResourceType;
-import Resource.UnitType;
+import Unit.UnitType;
 import Unit.AbstractUnit;
 import Unit.CombatUnit;
 import GameObjects.Tile;
@@ -34,14 +35,14 @@ public class Barracks extends AbstractBuilding {
 
     private float spawnOriginX;
     TileMap map;
-    GamePanel gp;
+    Faction ownerFaction;
     private float spawnOriginY;
     private Vector2 worldPos;
     private Vector2Int cellPos;
 
 
     // Class Constructor
-    public Barracks(TileMap map, GamePanel gp, float x, float y) {
+    public Barracks(TileMap map, Faction ownerFaction, float x, float y) {
 		super(x, y, (int)(GamePanel.TILE_SIZE * WIDTH_TILES), (int)(GamePanel.TILE_SIZE * HEIGHT_TILES));
 
         TYPE = BuildingType.BARRACKS;
@@ -59,7 +60,7 @@ public class Barracks extends AbstractBuilding {
     	currentHealth = maxHealth; 
         
         this.map = map;
-        this.gp = gp;
+        this.ownerFaction = ownerFaction;
 
         this.currentState = State.UNDER_CONSTRUCTION;
         generateBarracks(GameColors.BUILDING_BARRACKS_UNDER_CONSTRUCTION);
@@ -79,7 +80,7 @@ public class Barracks extends AbstractBuilding {
                     Logger.log("Construction Completed.");
                     System.out.println("Construction Completed...");
                     // activate commandPanel
-                    gp.CP.setCommandsForBuilding(this);
+                    ownerFaction.getCommandPanel().setCommandsForBuilding(this);
                 }
                 return;
             case State.IN_OPERATION:
@@ -111,20 +112,23 @@ public class Barracks extends AbstractBuilding {
      */
     public void produce(UnitType type) {
         Cost cost = type.getCost();
-        if (!gp.RM.canAfford(cost)) {
+        if (!ownerFaction.getResourceManager().canAfford(cost)) {
             Logger.log("Not enough resources for " + type + "_UNIT");
             System.out.println("Not enough resources for " + type + "_UNIT");
             return;
         }
 
         // spend resource, queue new unit
-        gp.RM.spend(cost);
+        ownerFaction.getResourceManager().spend(cost);
         enqueueUnit(type);
 
-        Logger.log("Built " + type  + " | Remaining minerals: " + gp.RM.get(ResourceType.MINERAL) +
-                ", used supply: " + gp.RM.getUsedSupply() + "/" + gp.RM.getMaxSupply());
-        System.out.println("Built " + type  + " | Remaining minerals: " + gp.RM.get(ResourceType.MINERAL) +
-                            ", used supply: " + gp.RM.getUsedSupply() + "/" + gp.RM.getMaxSupply());
+        Logger.log("Built " + type  + " | Remaining minerals: " + ownerFaction.getResourceManager().get(ResourceType.MINERAL) +
+                ", used supply: " + ownerFaction.getResourceManager().getUsedSupply() + "/"
+                + ownerFaction.getResourceManager().getMaxSupply());
+
+        System.out.println("Built " + type  + " | Remaining minerals: " + ownerFaction.getResourceManager().get(ResourceType.MINERAL) +
+                            ", used supply: " + ownerFaction.getResourceManager().getUsedSupply() + "/"
+                + ownerFaction.getResourceManager().getMaxSupply());
     }
     
     // Called by CommandActionListener
@@ -135,7 +139,7 @@ public class Barracks extends AbstractBuilding {
 
         AbstractUnit unit = null;
         if (type == UnitType.COMBAT) {
-            unit = new CombatUnit(map, spawnOriginX, spawnOriginY, (int)GamePanel.TILE_SIZE, (int)GamePanel.TILE_SIZE );
+            unit = new CombatUnit(map, ownerFaction, spawnOriginX, spawnOriginY, (int)GamePanel.TILE_SIZE, (int)GamePanel.TILE_SIZE );
         }
 
         productionQueue.add(unit);

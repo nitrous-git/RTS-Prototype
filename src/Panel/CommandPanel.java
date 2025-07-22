@@ -8,6 +8,7 @@ import Building.Barracks;
 import Building.CommandCenter;
 import EventHandler.CommandActionListener;
 import EventHandler.MouseEventHandler;
+import Faction.Faction;
 import GameObjects.IEntity;
 import Unit.AbstractUnit;
 import Unit.CombatUnit;
@@ -22,6 +23,7 @@ public class CommandPanel extends JPanel {
 	private final GamePanel gp;
     public MouseEventHandler MH;
 	CommandActionListener CAL;
+    private Faction playerFaction;
 	
     private final JButton[][] buttons = new JButton[3][3];
     private static final int BUTTON_SIZE = 48;
@@ -34,12 +36,13 @@ public class CommandPanel extends JPanel {
     public JButton buildMenu, barracksConstruct, supplyDepotConstruct, commandCenterConstruct;
 
 
-    public CommandPanel(GamePanel gp) {
+    public CommandPanel(GamePanel gp, Faction playerFaction) {
     	this.gp = gp;
+        this.playerFaction = playerFaction;
     	setPreferredSize(new Dimension(150, 150));
         setLayout(new GridLayout(3, 3, 4, 4));
         initButtons();
-        CAL = new CommandActionListener(gp, this);
+        CAL = new CommandActionListener(playerFaction, this);
         setNoSelectionCommand();
     }
 
@@ -246,4 +249,5 @@ public class CommandPanel extends JPanel {
     public void setMouseEventHandler(MouseEventHandler MH){
         this.MH = MH;
     }
+
 }

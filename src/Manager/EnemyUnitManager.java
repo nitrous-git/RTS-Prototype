@@ -4,35 +4,33 @@ import java.awt.Graphics;
 import java.util.ArrayList;
 import java.util.List;
 
+import Faction.Faction;
+import Unit.AbstractUnit;
 import Unit.EnemyUnit;
 import Panel.GamePanel;
 import Util.Camera;
 import Util.TileMap;
 
 
-public class EnemyUnitManager {
-	
-    static final int UNITS_WIDTH = (int)GamePanel.TILE_SIZE;
-    static final int UNITS_HEIGHT = (int)GamePanel.TILE_SIZE;
-    
-    public static List<EnemyUnit> unitList;
-    //int maxSquadUnit = 8;
-    
-    TileMap map;
-    
+public class EnemyUnitManager extends UnitManager {
+
+    public static List<AbstractUnit> unitList;
+
 	// Constructor
 	public EnemyUnitManager(TileMap map) {
-		this.map = map;
-		unitList = new ArrayList<EnemyUnit>();
+		super(map);
+		unitList = new ArrayList<AbstractUnit>();
 		buildUnitSquad();
 	}
-	
+
+	@Override
 	public void draw(Graphics g, Camera c) {
-		for (EnemyUnit unit : unitList) {
+		for (AbstractUnit unit : unitList) {
 			unit.draw(g, c);
 		}
 	}
-    
+
+	@Override
 	public void update() {
 		for (int i = 0; i < unitList.size(); i++) {
 			unitList.get(i).update();
@@ -41,7 +39,8 @@ public class EnemyUnitManager {
 			}
 		}
 	}
-    
+
+
 	public void buildUnitSquad() {	
 		  float posX = 0;
 		  float posY = 0;
@@ -61,24 +60,5 @@ public class EnemyUnitManager {
 		    posX = 0;
 		  }
 	}
-	
-	/*
-	public void buildUnitSquad() {
-		int startPosX = 400;
-		int startPosY = 80;
-		
-		for (int i = 0; i < 2; i++) {
-			for (int j = 0; j < maxSquadUnit/2; j++) {
-				EnemyUnit unit = new EnemyUnit(startPosX+j*60, startPosY+i*60, UNITS_WIDTH, UNITS_HEIGHT);
-				int index = (maxSquadUnit/2)*i + j;
-				unit.setID(index);
-				unit.setTag("enemy");
-				unitList.add(unit);
-			}
-		}
-	}*/
-	
-	
-	
 
 }

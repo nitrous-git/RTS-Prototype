@@ -5,6 +5,7 @@ import Building.BuildingType;
 import Building.CommandCenter;
 import Command.CommandContext;
 import Command.CommandType;
+import Faction.Faction;
 import Manager.BuildingManager;
 import Manager.PlayerUnitManager;
 import Manager.ResourceManager;
@@ -22,9 +23,6 @@ import java.util.concurrent.ThreadLocalRandom;
 public class WorkerUnit extends AbstractUnit implements IControllable {
 
     /// Declarations
-    protected GamePanel gp;
-    protected BuildingManager BM;
-    protected ResourceManager RM;
     protected CommandType currentCommand;
     protected CommandContext ctx;
 
@@ -58,7 +56,7 @@ public class WorkerUnit extends AbstractUnit implements IControllable {
     private IUnitState<WorkerUnit> currentState;
 
     // Constructor
-    public WorkerUnit(TileMap map, BuildingManager BM, ResourceManager RM, GamePanel gp, float x, float y, int width, int height) {
+    public WorkerUnit(TileMap map, Faction ownerFaction, float x, float y, int width, int height) {
         super(x, y, width, height);
         this.selected = false;
         this.isMoving = false;
@@ -67,10 +65,8 @@ public class WorkerUnit extends AbstractUnit implements IControllable {
         setMaxHealth(300.0f);
         currentHealth = maxHealth;
 
-        this.BM = BM;
-        this.RM = RM;
+        this.ownerFaction = ownerFaction;
         this.map = map;
-        this.gp = gp;
         pf = new Pathfinder();
 
         this.currentNode = GamePanel.convertWorldToCell(x, y);
@@ -198,7 +194,7 @@ public class WorkerUnit extends AbstractUnit implements IControllable {
         if (deliverTimer%15 == 0) {
             if (carryLoad > 0) {
                 carryLoad--;
-                gp.RM.add(currentGatherType, 1);
+                ownerFaction.getResourceManager().add(currentGatherType, 1);
             }
             else if (carryLoad <= 0) {
                 //System.out.println("Delivery Over");
@@ -218,7 +214,7 @@ public class WorkerUnit extends AbstractUnit implements IControllable {
     private AbstractBuilding findNearestCommandCenter() {
         AbstractBuilding nearest = null;
         float bestDist = Float.MAX_VALUE;
-        for (AbstractBuilding b : BuildingManager.buildingList) {
+        for (AbstractBuilding b : ownerFaction.getBuildingManager().buildingList) {
             if (b.TYPE == BuildingType.COMMAND_CENTER) {
                 float d = calculateDistance(b.getX(), b.getY());
                 if (d < bestDist) {

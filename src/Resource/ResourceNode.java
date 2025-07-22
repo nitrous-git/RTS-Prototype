@@ -24,10 +24,9 @@ public class ResourceNode extends Entity {
     private final Vector2 worldPos;
     private final Vector2Int cellPos;
     private final TileMap map;
-    private GamePanel gp;
 
     // Constructor
-    public ResourceNode(TileMap map, GamePanel gp, ResourceType type, float x, float y) {
+    public ResourceNode(TileMap map, ResourceType type, float x, float y) {
         super(x, y, (int)(GamePanel.TILE_SIZE), (int)(GamePanel.TILE_SIZE));
 
         worldPos = new Vector2(x, y);
@@ -35,12 +34,10 @@ public class ResourceNode extends Entity {
 
         this.type = type;
         this.remainingAmount = initialAmount;
-
         this.map = map;
-        this.gp = gp;
 
         initHitbox(x, y, this.width, this.height);
-        paintTile(Color.CYAN);
+        addNodeToMap();
     }
 
     @Override
@@ -55,18 +52,30 @@ public class ResourceNode extends Entity {
                         (int) (height * camera.scaleY)
                 );
             }
+            /*
+            g.setColor(GameColors.RESOURCE_NODE_MINERAL);
+            g.fillRect(
+                    (int) ((x - camera.getX()) * camera.scaleX),
+                    (int) ((y - camera.getY()) * camera.scaleY),
+                    (int) (width * camera.scaleX),
+                    (int) (height * camera.scaleY)
+            );
+             */
         }
     }
 
     public void update(){ }
 
-    private void paintTile(Color color) {
+
+    private void addNodeToMap() {
         map.tileArr[cellPos.y][cellPos.x] = new Tile(worldPos.x,
                                                     worldPos.y,
                                                     (int) GamePanel.TILE_SIZE,
                                                     (int) GamePanel.TILE_SIZE,
                                                     GameColors.RESOURCE_NODE_MINERAL);
         map.intArr[cellPos.y ][cellPos.x ] = TOKEN;
+
+        //map.printer();
     }
 
     public int gather(IResourceManager resourceManager) {

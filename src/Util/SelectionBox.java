@@ -8,15 +8,15 @@ import Panel.GamePanel;
 
 public class SelectionBox {
 	
-	GamePanel p;
+	Camera camera;
 
     // Variables to track the selection box
     public boolean dragging;
     private int startX, startY;  // where the user started dragging
     private int endX, endY;      // where the user ended dragging  
     
-    public SelectionBox(GamePanel panel) {
-		this.p = panel;
+    public SelectionBox(Camera camera) {
+        this.camera = camera;
 	}
 
 	public void drawSelectionBox(Graphics2D g2d) {
@@ -43,25 +43,25 @@ public class SelectionBox {
         }
 
         g2d.setColor(GameColors.SELECTION_BOX);
-        g2d.drawRect((int)(rectX - p.camera.getX()), (int)(rectY - p.camera.getY()), width, height);
+        g2d.drawRect((int)(rectX - camera.getX()), (int)(rectY - camera.getY()), width, height);
     }
 	
     public void startSelection(int x, int y) {
-		startX = (int) (x + p.camera.getX());
-		startY = (int) (y + p.camera.getY());
-		endX = (int) (x + p.camera.getX());
-		endY = (int) (y + p.camera.getY());
+		startX = (int) (x + camera.getX());
+		startY = (int) (y + camera.getY());
+		endX = (int) (x + camera.getX());
+		endY = (int) (y + camera.getY());
 		dragging = true;
     }
 	
 	public void updateSelection(int x, int y) {
-		endX = (int) (x + p.camera.getX());
-	    endY = (int) (y + p.camera.getY());	
+		endX = (int) (x + camera.getX());
+	    endY = (int) (y + camera.getY());
 	}
 	
 	public void finishSelection(int x, int y) {
-		endX = (int) (x + p.camera.getX());
-	    endY = (int) (y + p.camera.getY());	
+		endX = (int) (x + camera.getX());
+	    endY = (int) (y + camera.getY());
         dragging = false;
 	}
 	   

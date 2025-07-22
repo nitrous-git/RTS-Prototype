@@ -1,4 +1,5 @@
 package Unit;
+import Faction.Faction;
 import GameObjects.Entity;
 import GameObjects.Projectile;
 import Util.Camera;
@@ -11,10 +12,12 @@ import java.util.List;
 
 public abstract class AbstractUnit extends Entity {
 
+	protected Faction ownerFaction;
+
 	public boolean selected;
 	List<Projectile> projectileList = new ArrayList<>();
 	int shootingTimer = 0;
-	
+
 	Ellipse2D.Float visionbox;
 	
     Rectangle2D.Float healthBar;
@@ -108,5 +111,9 @@ public abstract class AbstractUnit extends Entity {
     	healthBar.x = x-(width/2);
     	healthBar.y = y-1.2f*(height/2);
     }
+
+	public Faction getOwnerFaction() {
+		return ownerFaction;
+	}
     
 }

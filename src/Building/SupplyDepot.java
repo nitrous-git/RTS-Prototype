@@ -3,6 +3,7 @@ package Building;
 import java.awt.Color;
 import java.awt.Graphics;
 
+import Faction.Faction;
 import Panel.GamePanel;
 import Util.*;
 import GameObjects.Tile;
@@ -28,9 +29,9 @@ public class SupplyDepot extends AbstractBuilding {
     private final Vector2 worldPos;
     private final Vector2Int cellPos;
     private final TileMap map;
-    private final GamePanel gp;
+    private final Faction ownerFaction;
 
-    public SupplyDepot(TileMap map, GamePanel gp, float x, float y) {
+    public SupplyDepot(TileMap map, Faction ownerFaction, float x, float y) {
         super(x, y,
                 (int)(GamePanel.TILE_SIZE * WIDTH_TILES),
                 (int)(GamePanel.TILE_SIZE * HEIGHT_TILES));
@@ -39,9 +40,9 @@ public class SupplyDepot extends AbstractBuilding {
         TYPE = BuildingType.SUPPLY_DEPOT;
 
         this.worldPos = new Vector2(x, y);
-        this.cellPos  = GamePanel.convertWorldToCell(x, y);
-        this.map      = map;
-        this.gp       = gp;
+        this.cellPos = GamePanel.convertWorldToCell(x, y);
+        this.map = map;
+        this.ownerFaction = ownerFaction;
 
         setMaxHealth(250.0f);
         currentHealth = maxHealth;
@@ -63,9 +64,9 @@ public class SupplyDepot extends AbstractBuilding {
                     System.out.println("Supply Depot completed, +"
                             + SUPPLY_AMOUNT + " supply");
                     // increase the player's max supply
-                    gp.RM.increaseMaxSupply(SUPPLY_AMOUNT);
+                    ownerFaction.getResourceManager().increaseMaxSupply(SUPPLY_AMOUNT);
                     // enable its commands (e.g. none, but for UI consistency)
-                    gp.CP.setCommandsForBuilding(this);
+                    ownerFaction.getCommandPanel().setCommandsForBuilding(this);
                 }
                 return;
             case IN_OPERATION:

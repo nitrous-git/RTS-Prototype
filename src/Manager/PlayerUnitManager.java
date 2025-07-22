@@ -4,6 +4,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import Faction.Faction;
 import GameObjects.*;
 import Panel.GamePanel;
 import Unit.AbstractUnit;
@@ -12,41 +13,37 @@ import Unit.IControllable;
 import Unit.WorkerUnit;
 import Util.*;
 
-public class PlayerUnitManager {
-	
-    static final int UNITS_WIDTH = (int)GamePanel.TILE_SIZE;
-    static final int UNITS_HEIGHT = (int)GamePanel.TILE_SIZE;
-    
+public class PlayerUnitManager extends UnitManager {
+
     public static List<AbstractUnit> unitList;
     public static List<AbstractUnit> selectedUnitList;
     public static AbstractUnit quickSelection;
 
-    TileMap map;
 	public List<Tile> tempTileList;
 	public List<Vector2Int> tempTileIndex;
 
-	public GamePanel GP;
-
 	// Constructor
-	public PlayerUnitManager(TileMap map, GamePanel GP) {
-		this.map = map;
-		this.GP = GP;
+	public PlayerUnitManager(TileMap map) {
+        super(map);
+
 		unitList = new ArrayList<AbstractUnit>();
 		selectedUnitList = new ArrayList<AbstractUnit>();
-		//buildUnitSquad();
 
 		tempTileList = new ArrayList<Tile>();
 		tempTileIndex = new ArrayList<Vector2Int>();
 
-		buildUnitSquad();
+		//System.out.println("is map null? "+map.intArr.length);
+		//buildUnitSquad();
 	}
-	
+
+	@Override
 	public void draw(Graphics g, Camera c) {
 		for (IEntity unit : unitList) {
 			unit.draw(g, c);
 		}
 	}
-	
+
+	@Override
 	public void update() {
 		for (int i = 0; i < unitList.size(); i++) {
 			unitList.get(i).update();
@@ -90,14 +87,14 @@ public class PlayerUnitManager {
 		  for (int i = 0; i < GamePanel.ROWS; i++) {
 		    for (int j = 0; j < GamePanel.COLS; j++) {
 		        if (map.intArr[i][j] == CombatUnit.TOKEN) {
-		        	CombatUnit unit = new CombatUnit(map, posX, posY, (int)GamePanel.TILE_SIZE, (int)GamePanel.TILE_SIZE);
+		        	CombatUnit unit = new CombatUnit(map, ownerFaction, posX, posY, (int)GamePanel.TILE_SIZE, (int)GamePanel.TILE_SIZE);
 					int index = GamePanel.COLS*i + j;
 					unit.setID(index);
 					unit.setTag("Combat");
 					unitList.add(unit);
 		        }
 				if (map.intArr[i][j] == WorkerUnit.TOKEN) {
-					WorkerUnit unit = new WorkerUnit(map, GP.BM, GP.RM, GP, posX, posY, (int)GamePanel.TILE_SIZE, (int)GamePanel.TILE_SIZE);
+					WorkerUnit unit = new WorkerUnit(map, ownerFaction, posX, posY, (int)GamePanel.TILE_SIZE, (int)GamePanel.TILE_SIZE);
 					int index = GamePanel.COLS*i + j;
 					unit.setID(index);
 					unit.setTag("Worker");

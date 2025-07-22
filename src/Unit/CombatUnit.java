@@ -1,11 +1,13 @@
 package Unit;
 import java.awt.Color;
 import java.awt.Graphics;
+import java.sql.DatabaseMetaData;
 import java.util.ArrayList;
 import java.util.List;
 
 import Command.CommandContext;
 import Command.CommandType;
+import Faction.Faction;
 import GameObjects.Projectile;
 import Panel.GamePanel;
 import Manager.EnemyUnitManager;
@@ -23,7 +25,7 @@ public class CombatUnit extends AbstractUnit implements IControllable {
     private boolean isMoving;
     private float speed = 1.8f;  
     
-	EnemyUnit targetEnemyUnit;
+	AbstractUnit targetEnemyUnit;
 	
 	//String[] states =  new String[] { "IDL", "MVG", "ATK" };
 	//String currentState = states[0];
@@ -42,7 +44,7 @@ public class CombatUnit extends AbstractUnit implements IControllable {
     private boolean isWaiting = false; // Indicates if the unit is waiting for a block to clear
 	
 	// Constructor
-    public CombatUnit(TileMap map, float x, float y, int width, int height) {
+    public CombatUnit(TileMap map, Faction ownerFaction, float x, float y, int width, int height) {
     	super(x, y, width, height);
     	this.selected = false;
     	this.isMoving = false;
@@ -52,6 +54,7 @@ public class CombatUnit extends AbstractUnit implements IControllable {
     	currentHealth = 100f;
         healthBar.width = (float)(currentHealth/maxHealth)*2f*width;
 
+        this.ownerFaction = ownerFaction;
     	this.map = map;
     	pf = new Pathfinder();
     	
@@ -334,11 +337,12 @@ public class CombatUnit extends AbstractUnit implements IControllable {
      */
     @Override
 	public void updateUnitSensing() {
-		List<EnemyUnit> eul = EnemyUnitManager.unitList;
-		float max = (float) Double.MAX_VALUE;
-		
+		List<AbstractUnit> eul = EnemyUnitManager.unitList;
+        if (eul == null || eul.isEmpty()) return;
+
 		targetEnemyUnit = null;
-		
+        float max = (float) Double.MAX_VALUE;
+
 		// find the closest enemy
 		for (int i = 0; i < eul.size(); i++) {
 			if ( visionbox.intersects(eul.get(i).getHitbox()) ) {

@@ -9,6 +9,7 @@ import Building.AbstractBuilding;
 import Building.Barracks;
 import Building.CommandCenter;
 import Building.SupplyDepot;
+import Faction.Faction;
 import GameObjects.IEntity;
 import GameObjects.Tile;
 import Panel.GamePanel;
@@ -21,11 +22,9 @@ public class BuildingManager {
 
 	public boolean inPlacementMode;
 
-    public static List<AbstractBuilding> buildingList;
-
-	// *** could probably be a AbstractBuilding instead of IEntity
-    public static IEntity selectedBuilding; // only one selected building at the time
-	public static AbstractBuilding quickSelection;
+    public List<AbstractBuilding> buildingList;
+    public AbstractBuilding selectedBuilding; // only one selected building at the time
+	public AbstractBuilding quickSelection;
 	int h, w = 0;
 
 	public boolean transactionAllowed;
@@ -34,12 +33,12 @@ public class BuildingManager {
     public List<Vector2Int> tempTileIndex;
 
 	TileMap map;
-	GamePanel gp;
+	Faction ownerFaction;
 
 	// Constructor
-	public BuildingManager(TileMap map, GamePanel gp) {
+	public BuildingManager(TileMap map, Faction ownerFaction) {
 		this.map = map;
-		this.gp = gp;
+		this.ownerFaction = ownerFaction;
 		buildingList = new ArrayList<AbstractBuilding>();
 		tempTileList = new ArrayList<Tile>();
 		tempTileIndex = new ArrayList<Vector2Int>();
@@ -69,14 +68,14 @@ public class BuildingManager {
 	 */
 	public void construct(BuildingType type, Vector2Int startPos) {
 		Cost cost = type.getCost();
-		if (!gp.RM.canAfford(cost)) {
+		if (!ownerFaction.getResourceManager().canAfford(cost)) {
 			Logger.log("Not enough resources for " + type + " building");
 			System.out.println("Not enough resources for " + type + " building");
 			return;
 		}
 
 		// spend resource, construct
-		gp.RM.spend(cost);
+		ownerFaction.getResourceManager().spend(cost);
 
 		switch (type){
 			case BARRACKS -> addBarracks(startPos);
@@ -86,19 +85,25 @@ public class BuildingManager {
 
 		// If it's a supply‐providing building, bump the cap
 		if (type.getSupplyProvided() > 0) {
-			gp.RM.increaseMaxSupply(type.getSupplyProvided());
+			ownerFaction.getResourceManager().increaseMaxSupply(type.getSupplyProvided());
 		}
+
 		Logger.log("Built " + type
-				+ " | Minerals left: " + gp.RM.get(ResourceType.MINERAL)  + " | Supply: " + gp.RM.getUsedSupply() + "/" + gp.RM.getMaxSupply());
+				+ " | Minerals left: " + ownerFaction.getResourceManager().get(ResourceType.MINERAL)
+				+ " | Supply: " + ownerFaction.getResourceManager().getUsedSupply() + "/"
+				+ ownerFaction.getResourceManager().getMaxSupply());
+
 		System.out.println("Built " + type
-				+ " | Minerals left: " + gp.RM.get(ResourceType.MINERAL)  + " | Supply: " + gp.RM.getUsedSupply() + "/" + gp.RM.getMaxSupply());
+				+ " | Minerals left: " + ownerFaction.getResourceManager().get(ResourceType.MINERAL)
+				+ " | Supply: " + ownerFaction.getResourceManager().getUsedSupply() + "/"
+				+ ownerFaction.getResourceManager().getMaxSupply());
 	}
 
     public void addBarracks(Vector2Int startPos) {
     	// convert back to world size after snap
     	Vector2 startf = GamePanel.convertCellToWorld(startPos.x, startPos.y);
     	if (isValidPlacement(startPos, Barracks.WIDTH_TILES, Barracks.HEIGHT_TILES)) {
-    		Barracks barracks = new Barracks(map, gp, startf.x, startf.y);
+    		Barracks barracks = new Barracks(map, ownerFaction, startf.x, startf.y);
     		barracks.setTag("Barracks");
     		barracks.setID(startPos.x*startPos.y); // ID is the index of start point inside the grid
     		buildingList.add( barracks ); 
@@ -109,7 +114,7 @@ public class BuildingManager {
 		// convert back to world size after snap
 		Vector2 startf = GamePanel.convertCellToWorld(startPos.x, startPos.y);
 		if (isValidPlacement(startPos, SupplyDepot.WIDTH_TILES, SupplyDepot.HEIGHT_TILES)) {
-			SupplyDepot supplyDepot = new SupplyDepot(map, gp, startf.x, startf.y);
+			SupplyDepot supplyDepot = new SupplyDepot(map, ownerFaction, startf.x, startf.y);
 			supplyDepot.setTag("SupplyDepot");
 			supplyDepot.setID(startPos.x*startPos.y); // ID is the index of start point inside the grid
 			buildingList.add( supplyDepot );
@@ -120,7 +125,7 @@ public class BuildingManager {
 		// convert back to world size after snap
 		Vector2 startf = GamePanel.convertCellToWorld(startPos.x, startPos.y);
 		if (isValidPlacement(startPos, CommandCenter.WIDTH_TILES, CommandCenter.HEIGHT_TILES)) {
-			CommandCenter commandCenter = new CommandCenter(map, gp, this, startf.x, startf.y);
+			CommandCenter commandCenter = new CommandCenter(map, ownerFaction, this, startf.x, startf.y);
 			commandCenter.setTag("CommandCenter");
 			commandCenter.setID(startPos.x*startPos.y); // ID is the index of start point inside the grid
 			buildingList.add( commandCenter );
@@ -245,7 +250,7 @@ public class BuildingManager {
 	
 	public boolean getInPlacementMode() { return inPlacementMode; }
 
-	public static IEntity getSelectedBuilding() {
+	public IEntity getSelectedBuilding() {
 		for (AbstractBuilding building : buildingList) {
 			if (building.isSelected()) {
 				return (IEntity)building;

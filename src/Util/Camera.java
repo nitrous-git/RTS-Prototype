@@ -10,14 +10,14 @@ public class Camera {
 	public float scaleX, scaleY;
 	public boolean up, down, left, right;
 	
-	public Camera(float x, float y, float width, float height, GamePanel window) {
+	public Camera(float x, float y, float width, float height) {
 		this.x = x;
 		this.y = y;
 		this.width = width;
 		this.height = height;
 		
-		scaleX = (window.WIDTH * GamePanel.SCALE)/ width;
-		scaleY = (window.HEIGHT * GamePanel.SCALE) / height;
+		scaleX = (GamePanel.WIDTH * GamePanel.SCALE)/ width;
+		scaleY = (GamePanel.HEIGHT * GamePanel.SCALE) / height;
 	}
 
 	public float getX() {
@@ -44,9 +44,9 @@ public class Camera {
 		this.vel_y = vel_y;
 	}
 
-	public void setScale(float width, float height, GamePanel window) {
-		scaleX = window.WIDTH / width;
-		scaleY = window.HEIGHT / height;
+	public void setScale(float width, float height) {
+		scaleX = GamePanel.WIDTH / width;
+		scaleY = GamePanel.HEIGHT / height;
 	}
 
 	public void moveX(){

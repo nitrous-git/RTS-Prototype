@@ -3,6 +3,7 @@ package EventHandler;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
+import Faction.Faction;
 import Panel.GamePanel;
 
 public class KeyEventHandler implements KeyListener {
@@ -10,7 +11,7 @@ public class KeyEventHandler implements KeyListener {
     private GamePanel gamePanel;
 
     // Constructor 
-    public KeyEventHandler(GamePanel panel) {    
+    public KeyEventHandler(GamePanel panel) {
         this.gamePanel = panel;
     }
 
@@ -30,9 +31,9 @@ public class KeyEventHandler implements KeyListener {
 			case KeyEvent.VK_DOWN:
 				gamePanel.camera.setDown(true);
 				break;
-				
+			/*
 			case KeyEvent.VK_1:
-				if (!gamePanel.BM.getInPlacementMode()) {
+				if (!playerFaction.BM.getInPlacementMode()) {
 					gamePanel.BM.setInPlacementMode(true);
 				}else {
 					gamePanel.BM.setInPlacementMode(false);
@@ -40,8 +41,7 @@ public class KeyEventHandler implements KeyListener {
 				}
 				System.out.println("In Placement Mode : " + gamePanel.BM.getInPlacementMode());
 				break;	
-			
-			/*
+
 			// zoom in, zoom out 
 			case KeyEvent.VK_1:
 				  gamePanel.camera_scaling += 5;

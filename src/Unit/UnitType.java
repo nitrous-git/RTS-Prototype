@@ -1,4 +1,6 @@
-package Resource;
+package Unit;
+
+import Resource.Cost;
 
 public enum UnitType {
     WORKER(new Cost(25, 0, 1)),

@@ -3,28 +3,31 @@ package EventHandler;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
-import java.util.Locale;
 
 import Building.Barracks;
 import Building.CommandCenter;
 import Command.CommandType;
+import Faction.Faction;
 import Manager.PlayerUnitManager;
 import Panel.CommandPanel;
-import Panel.GamePanel;
 import Building.BuildingType;
-import Resource.UnitType;
+import Unit.UnitType;
 import Unit.AbstractUnit;
 import Unit.IControllable;
 import Util.Logger;
 
 public class CommandActionListener implements ActionListener {
 
-	private final GamePanel gp;
-	private final CommandPanel cp;
+	private final Faction playerFaction;
+	private final CommandPanel CP;
 
-	public CommandActionListener(GamePanel gp, CommandPanel cp) {
-		this.cp = cp;
-	    this.gp = gp;
+	private PlayerUnitManager PUM;
+
+	public CommandActionListener(Faction playerFaction, CommandPanel CP) {
+		this.CP = CP;
+	    this.playerFaction = playerFaction;
+
+		PUM = ((PlayerUnitManager)playerFaction.getUnitManager());
 	}
 	
 	@Override
@@ -34,25 +37,25 @@ public class CommandActionListener implements ActionListener {
 		// ----------------------------------------
 
 		// Barracks Event
-		if (source == cp.combatUnitTraining) {
-	        if (cp.getSelectedEntity() instanceof Barracks) { // don't even need to check...
-	        	((Barracks)cp.getSelectedEntity()).produce(UnitType.COMBAT);
+		if (source == CP.combatUnitTraining) {
+	        if (CP.getSelectedEntity() instanceof Barracks) { // don't even need to check...
+	        	((Barracks)CP.getSelectedEntity()).produce(UnitType.COMBAT);
 	        }
         }
 
 		// Command Center Event
-		if (source == cp.workerUnitTraining) {
-			if (cp.getSelectedEntity() instanceof CommandCenter) { // don't even need to check...
-				((CommandCenter)cp.getSelectedEntity()).produce(UnitType.WORKER);
+		if (source == CP.workerUnitTraining) {
+			if (CP.getSelectedEntity() instanceof CommandCenter) { // don't even need to check...
+				((CommandCenter)CP.getSelectedEntity()).produce(UnitType.WORKER);
 			}
 		}
 
 		// AbstractBuilding Shared Event
-		if (source == cp.setWaypoint) {
+		if (source == CP.setWaypoint) {
 			Logger.log("Set Waypoint - to implement");
 			System.out.println("Set Waypoint - to implement");
 		}
-	    if (source == cp.cancelLastQueue) {
+	    if (source == CP.cancelLastQueue) {
 			Logger.log("Cancel Last Queued Unit - to implement");
 		    System.out.println("Cancel Last Queued Unit - to implement");
 	    }
@@ -60,11 +63,11 @@ public class CommandActionListener implements ActionListener {
 		// ----------------------------------------
 
 		// AbstractUnit shared Event
-		if (source == cp.moveTo) {
-			cp.setWaitCommand();
-			cp.MH.setMode(MouseEventHandler.Mode.MOVE);
+		if (source == CP.moveTo) {
+			CP.setWaitCommand();
+			CP.MH.setMode(MouseEventHandler.Mode.MOVE);
 		}
-		if (source == cp.stop) {
+		if (source == CP.stop) {
 			// don't wait, just pause the unit movement
 			List<AbstractUnit> units = PlayerUnitManager.getSelectedUnitList();
 			// (we don't need to check is isSelected, clean it up later...)
@@ -74,51 +77,51 @@ public class CommandActionListener implements ActionListener {
 				}
 			}
 		}
-		if (source == cp.attack) {
-			cp.setWaitCommand();
+		if (source == CP.attack) {
+			CP.setWaitCommand();
 			// do attack
 		}
-		if (source == cp.cancel) {
-			cp.MH.setMode(MouseEventHandler.Mode.SELECTION);
-			cp.setNoSelectionCommand();
-			gp.PUM.clearMovementHelper();
-			gp.BM.clearPlacementHelper();
+		if (source == CP.cancel) {
+			CP.MH.setMode(MouseEventHandler.Mode.SELECTION);
+			CP.setNoSelectionCommand();
+			PUM.clearMovementHelper();
+			playerFaction.getBuildingManager().clearPlacementHelper();
 		}
 
 		// Worker Event
-		if (source == cp.repair) {
-			cp.setWaitCommand();
-			cp.MH.setMode(MouseEventHandler.Mode.SELECTION);
+		if (source == CP.repair) {
+			CP.setWaitCommand();
+			CP.MH.setMode(MouseEventHandler.Mode.SELECTION);
 		}
-		if (source == cp.gather) {
-			cp.setWaitCommand();
+		if (source == CP.gather) {
+			CP.setWaitCommand();
 			// do gather
 		}
- 		if (source == cp.buildMenu) {
-			 cp.setBuildCommand();
+ 		if (source == CP.buildMenu) {
+			CP.setBuildCommand();
 			 // to build menu
 		}
 
 		// BuildingMenu Event (accessible from WorkerUnit)
-		if (source == cp.barracksConstruct) {
-			cp.setWaitCommand();
-			cp.MH.setMode(MouseEventHandler.Mode.PLACEMENT);
-			cp.MH.setCurrentBuildingType(BuildingType.BARRACKS);
+		if (source == CP.barracksConstruct) {
+			CP.setWaitCommand();
+			CP.MH.setMode(MouseEventHandler.Mode.PLACEMENT);
+			CP.MH.setCurrentBuildingType(BuildingType.BARRACKS);
 
 		}
-		if (source == cp.supplyDepotConstruct) {
-			cp.setWaitCommand();
-			cp.MH.setMode(MouseEventHandler.Mode.PLACEMENT);
-			cp.MH.setCurrentBuildingType(BuildingType.SUPPLY_DEPOT);
+		if (source == CP.supplyDepotConstruct) {
+			CP.setWaitCommand();
+			CP.MH.setMode(MouseEventHandler.Mode.PLACEMENT);
+			CP.MH.setCurrentBuildingType(BuildingType.SUPPLY_DEPOT);
 		}
 
-		if (source == cp.commandCenterConstruct) {
-			cp.setWaitCommand();
-			cp.MH.setMode(MouseEventHandler.Mode.PLACEMENT);
-			cp.MH.setCurrentBuildingType(BuildingType.COMMAND_CENTER);
+		if (source == CP.commandCenterConstruct) {
+			CP.setWaitCommand();
+			CP.MH.setMode(MouseEventHandler.Mode.PLACEMENT);
+			CP.MH.setCurrentBuildingType(BuildingType.COMMAND_CENTER);
 		}
 
-		if (source == cp.cancelConstruction) {
+		if (source == CP.cancelConstruction) {
 			Logger.log("Cancel Construction - to implement");
 			System.out.println("Cancel Construction - to implement - from CommandActionListener");
 		}

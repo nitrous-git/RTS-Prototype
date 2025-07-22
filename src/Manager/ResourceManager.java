@@ -1,13 +1,11 @@
 package Manager;
 
 import Building.AbstractBuilding;
+import Faction.Faction;
 import GameObjects.IEntity;
 import GameObjects.Tile;
 import Panel.GamePanel;
-import Resource.Cost;
-import Resource.IResourceManager;
-import Resource.ResourceNode;
-import Resource.ResourceType;
+import Resource.*;
 import Unit.AbstractUnit;
 import Unit.EnemyUnit;
 import Unit.IControllable;
@@ -18,6 +16,7 @@ import Util.Vector2Int;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class ResourceManager implements IResourceManager {
@@ -28,23 +27,21 @@ public class ResourceManager implements IResourceManager {
     private int usedSupply   = 0;
     private int maxSupply    = 10;    // default starting supply
 
-    public static List<ResourceNode> resourceNodeList;
+    private final List<ResourceNode> worldNodes; // reference, not a copy
     public static List<ResourceNode> selectedResourceNodeList;
     public static ResourceNode quickSelection;
 
     TileMap map;
-    GamePanel gp;
+    Faction ownerFaction;
 
     // Constructor
-    public ResourceManager(TileMap map, GamePanel gp) {
+    public ResourceManager(TileMap map, ResourceNodeRepository RNR) {
         this.map = map;
-        this.gp = gp;
-        resourceNodeList = new ArrayList<ResourceNode>();
+        this.worldNodes = RNR.getAllNodes();
         selectedResourceNodeList = new ArrayList<ResourceNode>();
-
-        buildResourceList();
     }
 
+    /*
     public void draw(Graphics g, Camera c) {
         for (ResourceNode node : resourceNodeList) {
             node.draw(g, c);
@@ -61,6 +58,7 @@ public class ResourceManager implements IResourceManager {
             }
         }
     }
+     */
 
     /*
     * Economy and trading methods
@@ -97,19 +95,25 @@ public class ResourceManager implements IResourceManager {
 
     /*
     * Helper methods
-    **/
+    *
     public void buildResourceList() {
         float posX = 0;
         float posY = 0;
 
         for (int i = 0; i < GamePanel.ROWS; i++) {
             for (int j = 0; j < GamePanel.COLS; j++) {
+
                 if (map.intArr[i][j] == ResourceNode.TOKEN) {
-                    ResourceNode node = new ResourceNode(map, gp, ResourceType.MINERAL, posX, posY);
+                    if (map.tileArr[i][j] != null) return;
+                    System.out.println(map.tileArr[i][j]);
+
+                    ResourceNode node = new ResourceNode(map, ResourceType.MINERAL, posX, posY);
                     int index = GamePanel.COLS*i + j;
                     node.setID(index);
                     node.setTag("Mineral");
                     resourceNodeList.add(node);
+
+                    System.out.println(map.tileArr[i][j]);
                 }
                 posX += GamePanel.TILE_SIZE;
             }
@@ -117,9 +121,10 @@ public class ResourceManager implements IResourceManager {
             posX = 0;
         }
     }
+    */
 
     public void clearSelectedResources() {
-        for (ResourceNode node : resourceNodeList) {
+        for (ResourceNode node : worldNodes) {
             node.setSelected(false);
         }
         if (!selectedResourceNodeList.isEmpty()) selectedResourceNodeList.clear();
@@ -127,7 +132,7 @@ public class ResourceManager implements IResourceManager {
 
     // update the unit selected states
     public void checkSelection(SelectionBox SB) {
-        for (ResourceNode node : resourceNodeList) {
+        for (ResourceNode node : worldNodes) {
             boolean unitSelected;
             unitSelected = SB.intersects(node.hitbox);
             node.setSelected(unitSelected);
@@ -135,16 +140,16 @@ public class ResourceManager implements IResourceManager {
     }
 
     public void checkQuickBoxSelection(SelectionBox SB){
-        for (ResourceNode node : resourceNodeList) {
+        for (ResourceNode node : worldNodes) {
             if (SB.intersects(node.hitbox)) {
                 quickSelection = node;
             }
         }
     }
 
-    public static List<ResourceNode> getSelectedResourceNodeList() {
+    public List<ResourceNode> getSelectedResourceNodeList() {
         List<ResourceNode> srn = new ArrayList<>();
-        for (ResourceNode node : resourceNodeList) {
+        for (ResourceNode node : worldNodes) {
             if (node.isSelected()) {
                 srn.add(node);
             }

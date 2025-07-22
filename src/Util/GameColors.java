@@ -21,8 +21,8 @@ public final class GameColors {
     public static final Color BUILDING_COMMAND_CENTER_UNDER_CONSTRUCTION = new Color(0xC0392B); // Pomegranate (under construction)
 
     // Units
-    public static final Color UNIT_PLAYER_WORKER              = new Color(0x3498DB); // Sky Blue (worker)
-    public static final Color UNIT_PLAYER_COMBAT              = new Color(0x5DADE2); // Light Steel Blue (combat)
+    public static final Color UNIT_PLAYER_WORKER              = new Color(0x97c1dd); // Sky Blue (worker) 0x3498DB
+    public static final Color UNIT_PLAYER_COMBAT              = new Color(0x3498DB); // Light Steel Blue (combat) 0x97c1dd
     public static final Color UNIT_ENEMY_WORKER               = new Color(0xEC7063); // Terra Cotta (opponent)
     public static final Color UNIT_ENEMY_COMBAT               = new Color(0xC0392B); // Pomegranate Red (threat)
 

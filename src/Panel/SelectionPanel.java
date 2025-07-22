@@ -10,6 +10,7 @@ import javax.swing.JPanel;
 import Building.AbstractBuilding;
 import Building.Barracks;
 import Building.CommandCenter;
+import Faction.Faction;
 import Manager.ResourceManager;
 import Resource.ResourceNode;
 import Unit.AbstractUnit;
@@ -21,10 +22,10 @@ import Unit.WorkerUnit;
 
 public class SelectionPanel extends JPanel {
 
-	private final GamePanel gp;
-	
-    public SelectionPanel(GamePanel gp) {
-    	this.gp = gp;
+    private Faction playerFaction;
+
+    public SelectionPanel(Faction playerFaction) {
+        this.playerFaction = playerFaction;
         setPreferredSize(new Dimension(500, 150));
     }
 
@@ -32,8 +33,8 @@ public class SelectionPanel extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         List<AbstractUnit> sel = PlayerUnitManager.getSelectedUnitList();
-        List<ResourceNode> rnl = ResourceManager.getSelectedResourceNodeList();
-        IEntity sb = BuildingManager.getSelectedBuilding();
+        List<ResourceNode> rnl = playerFaction.getResourceManager().getSelectedResourceNodeList();
+        IEntity sb = playerFaction.getBuildingManager().getSelectedBuilding();
 
         g.setColor(Color.BLACK);
         int y = 20;
@@ -65,7 +66,9 @@ public class SelectionPanel extends JPanel {
             AbstractUnit u = sel.get(0);
             g.drawString("Tag: " + u.getTag(), 10, y); 
             y += 20;
-            g.drawString("ID: " + u.getID(), 10, y); 
+            g.drawString("ID: " + u.getID(), 10, y);
+            y += 20;
+            g.drawString("Faction: " + u.getOwnerFaction().getName(), 10, y);
             y += 20;
             g.drawString("Health: " + (int)u.getCurrentHealth() + "/" + (int)u.getMaxHealth(), 10, y);
             if (u instanceof WorkerUnit wu) {
@@ -215,10 +218,10 @@ public class SelectionPanel extends JPanel {
     public void paintResourceEconomyInfo(Graphics g, int y){
         g.drawString("Economy: ", 10, y);
         y += 20;
-        g.drawString("Mineral: " + gp.RM.getMineralCount(), 10, y);
+        g.drawString("Mineral: " + playerFaction.getResourceManager().getMineralCount(), 10, y);
         y += 20;
-        g.drawString("Gas: " + gp.RM.getGasCount(), 10, y);
+        g.drawString("Gas: " + playerFaction.getResourceManager().getGasCount(), 10, y);
         y += 20;
-        g.drawString("Population : " + (int)gp.RM.getUsedSupply() + "/" + (int)gp.RM.getMaxSupply(), 10, y);
+        g.drawString("Population : " + (int)playerFaction.getResourceManager().getUsedSupply() + "/" + (int)playerFaction.getResourceManager().getMaxSupply(), 10, y);
     }
 }
