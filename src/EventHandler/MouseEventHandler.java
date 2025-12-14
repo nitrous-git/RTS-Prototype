@@ -2,19 +2,19 @@ package EventHandler;
 
 import java.awt.event.*;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.swing.SwingUtilities;
 
 import Building.AbstractBuilding;
 import Command.CommandContext;
 import Command.CommandType;
+import Faction.FactionManager;
 import Faction.Faction;
-import Manager.ResourceManager;
+import Manager.*;
 import Building.BuildingType;
 import Unit.AbstractUnit;
 import Panel.CommandPanel;
 import Panel.GamePanel;
-import Manager.BuildingManager;
-import Manager.PlayerUnitManager;
 import Unit.IControllable;
 import Unit.WorkerUnit;
 import Util.Camera;
@@ -30,22 +30,26 @@ public class MouseEventHandler implements MouseListener, MouseMotionListener {
     private final GamePanel GP;
     private final CommandPanel CP;
     private final SelectionBox SB;
+    private final GameContext GC;
     private Faction playerFaction;
     private Camera camera;
     private PlayerUnitManager PUM;
 
     public BuildingType currentBuildingType;
+    //private List<AbstractBuilding> allBuildingsCache;
 
     private final List<SelectionHandler> handlers;
 
 
     // Constructor 
     public MouseEventHandler(GamePanel GP, CommandPanel CP, SelectionBox SB,
+                             GameContext GC,
                              Faction playerFaction,
                              Camera camera) {
         this.GP = GP;
         this.CP = CP;
         this.SB = SB;
+        this.GC = GC;
         this.playerFaction = playerFaction;
         this.camera = camera;
 
@@ -66,6 +70,8 @@ public class MouseEventHandler implements MouseListener, MouseMotionListener {
 			SB.startSelection(e.getX(), e.getY());
 			GP.repaint();
 		}
+
+        //allBuildingsCache = FM.getAllBuildings();
     }
 
     @Override
@@ -74,6 +80,8 @@ public class MouseEventHandler implements MouseListener, MouseMotionListener {
     		SB.finishSelection(e.getX(), e.getY());
     		GP.repaint();
     	}
+
+        //allBuildingsCache = null;
     }
 
     @Override
@@ -94,7 +102,7 @@ public class MouseEventHandler implements MouseListener, MouseMotionListener {
 
         // If the unit is selected, move it 
         if (SwingUtilities.isRightMouseButton(e)) {
-        	List<AbstractUnit> units = PlayerUnitManager.getSelectedUnitList();
+        	List<AbstractUnit> units = getFilteredUnitList();
             for (AbstractUnit unit : units) {
                 if (unit instanceof IControllable controllable) {
                     CommandContext ctx;
@@ -146,21 +154,21 @@ public class MouseEventHandler implements MouseListener, MouseMotionListener {
 
                             // cleanup
                             setMode(Mode.SELECTION);
-                            CP.setCommandsForUnit(PlayerUnitManager.getSelectedUnitList());
+                            CP.setCommandsForUnit(units);
                             break;
                         case MOVE:
                             //System.out.println("UnitMove : "+ unit.toString());
                             ctx = new CommandContext().setDestination(worldX, worldY, camera);
                             controllable.issueCommand(CommandType.MOVE, ctx);
                             setMode(Mode.SELECTION);
-                            CP.setCommandsForUnit(PlayerUnitManager.getSelectedUnitList());
+                            CP.setCommandsForUnit(units);
                             PUM.clearMovementHelper();
                             break;
                         case ATTACK: break;
                         case REPAIR:
                             // cleanup
                             setMode(Mode.SELECTION);
-                            CP.setCommandsForUnit(PlayerUnitManager.getSelectedUnitList());
+                            CP.setCommandsForUnit(units);
                             PUM.clearMovementHelper();
                             break;
                     }
@@ -280,9 +288,10 @@ public class MouseEventHandler implements MouseListener, MouseMotionListener {
             PUM.checkSelection(sb);
             var units = PlayerUnitManager.getSelectedUnitList();
             if (!units.isEmpty()) {
-                playerFaction.getBuildingManager().clearSelectedBuilding();
+                //playerFaction.getBuildingManager().clearSelectedBuilding();
+                GC.clearSelectedBuilding();
                 playerFaction.getResourceManager().clearSelectedResources();
-                CP.setCommandsForUnit(units);
+                CP.setCommandsForUnit(getFilteredUnitList());
                 return true;
             }
             return false;
@@ -292,17 +301,22 @@ public class MouseEventHandler implements MouseListener, MouseMotionListener {
     private class BuildingSelectionHandler implements SelectionHandler {
         @Override
         public boolean handle(SelectionBox sb) {
-            playerFaction.getBuildingManager().checkSelection(sb);
-            var b = playerFaction.getBuildingManager().getSelectedBuilding();
+            GC.checkBuildingSelection(sb);
+            var b = GC.getSelectedBuilding();
             if (b != null) {
                 playerFaction.getResourceManager().clearSelectedResources();
-                handleBuildingSelectionBox((AbstractBuilding) b);
+                if (b.getOwnerFaction().getName().equals("Player")) {
+                    //System.out.println("PLAYER BUILDING");
+                    handleBuildingSelectionBox(b);
+                }
+                else {
+                    //System.out.println("OTHER FACTION BUILDING");
+                }
                 return true;
             }
             return false;
         }
     }
-
 
     private class ResourceSelectionHandler implements SelectionHandler {
         @Override
@@ -323,6 +337,13 @@ public class MouseEventHandler implements MouseListener, MouseMotionListener {
             CP.setNoSelectionCommand();
             return true;
         }
+    }
+
+    private List<AbstractUnit> getFilteredUnitList(){
+        return PlayerUnitManager.getSelectedUnitList()
+                .stream()
+                .filter(u -> u.getOwnerFaction().getName().equals("Player"))
+                .collect(Collectors.toList());
     }
 
 }

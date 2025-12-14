@@ -34,11 +34,12 @@ public class BuildingManager {
 
 	TileMap map;
 	Faction ownerFaction;
+	GameContext GC;
 
 	// Constructor
-	public BuildingManager(TileMap map, Faction ownerFaction) {
+	public BuildingManager(TileMap map, GameContext GC) {
 		this.map = map;
-		this.ownerFaction = ownerFaction;
+		this.GC = GC;
 		buildingList = new ArrayList<AbstractBuilding>();
 		tempTileList = new ArrayList<Tile>();
 		tempTileIndex = new ArrayList<Vector2Int>();
@@ -69,8 +70,8 @@ public class BuildingManager {
 	public void construct(BuildingType type, Vector2Int startPos) {
 		Cost cost = type.getCost();
 		if (!ownerFaction.getResourceManager().canAfford(cost)) {
-			Logger.log("Not enough resources for " + type + " building");
-			System.out.println("Not enough resources for " + type + " building");
+			Logger.log("Not enough resources for " + type + " building : " + ownerFaction.getName());
+			System.out.println("Not enough resources for " + type + " building : " + ownerFaction.getName());
 			return;
 		}
 
@@ -106,7 +107,8 @@ public class BuildingManager {
     		Barracks barracks = new Barracks(map, ownerFaction, startf.x, startf.y);
     		barracks.setTag("Barracks");
     		barracks.setID(startPos.x*startPos.y); // ID is the index of start point inside the grid
-    		buildingList.add( barracks ); 
+    		buildingList.add( barracks );
+			GC.registerBuilding( barracks );
 		}
     }
 
@@ -118,6 +120,7 @@ public class BuildingManager {
 			supplyDepot.setTag("SupplyDepot");
 			supplyDepot.setID(startPos.x*startPos.y); // ID is the index of start point inside the grid
 			buildingList.add( supplyDepot );
+			GC.registerBuilding( supplyDepot );
 		}
 	}
 
@@ -129,6 +132,7 @@ public class BuildingManager {
 			commandCenter.setTag("CommandCenter");
 			commandCenter.setID(startPos.x*startPos.y); // ID is the index of start point inside the grid
 			buildingList.add( commandCenter );
+			GC.registerBuilding( commandCenter );
 		}
 	}
 
@@ -258,4 +262,6 @@ public class BuildingManager {
 		}
 		return null;
 	}
+
+	public void setOwnerFaction(Faction ownerFaction){ this.ownerFaction = ownerFaction; }
 }

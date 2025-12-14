@@ -29,12 +29,13 @@ public class SupplyDepot extends AbstractBuilding {
     private final Vector2 worldPos;
     private final Vector2Int cellPos;
     private final TileMap map;
-    private final Faction ownerFaction;
+    //private final Faction ownerFaction;
 
     public SupplyDepot(TileMap map, Faction ownerFaction, float x, float y) {
         super(x, y,
-                (int)(GamePanel.TILE_SIZE * WIDTH_TILES),
-                (int)(GamePanel.TILE_SIZE * HEIGHT_TILES));
+            (int)(GamePanel.TILE_SIZE * WIDTH_TILES),
+            (int)(GamePanel.TILE_SIZE * HEIGHT_TILES),
+            ownerFaction );
 
         // mark type so CommandPanel can pick it up
         TYPE = BuildingType.SUPPLY_DEPOT;
@@ -42,7 +43,7 @@ public class SupplyDepot extends AbstractBuilding {
         this.worldPos = new Vector2(x, y);
         this.cellPos = GamePanel.convertWorldToCell(x, y);
         this.map = map;
-        this.ownerFaction = ownerFaction;
+        //this.ownerFaction = ownerFaction;
 
         setMaxHealth(250.0f);
         currentHealth = maxHealth;
@@ -65,8 +66,12 @@ public class SupplyDepot extends AbstractBuilding {
                             + SUPPLY_AMOUNT + " supply");
                     // increase the player's max supply
                     ownerFaction.getResourceManager().increaseMaxSupply(SUPPLY_AMOUNT);
-                    // enable its commands (e.g. none, but for UI consistency)
-                    ownerFaction.getCommandPanel().setCommandsForBuilding(this);
+
+                    if (!ownerFaction.isAI) {
+                        // activate commandPanel
+                        // enable its commands (e.g. none, but for UI consistency)
+                        ownerFaction.getCommandPanel().setCommandsForBuilding(this);
+                    }
                 }
                 return;
             case IN_OPERATION:

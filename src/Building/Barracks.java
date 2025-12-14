@@ -35,7 +35,7 @@ public class Barracks extends AbstractBuilding {
 
     private float spawnOriginX;
     TileMap map;
-    Faction ownerFaction;
+    //Faction ownerFaction;
     private float spawnOriginY;
     private Vector2 worldPos;
     private Vector2Int cellPos;
@@ -43,7 +43,7 @@ public class Barracks extends AbstractBuilding {
 
     // Class Constructor
     public Barracks(TileMap map, Faction ownerFaction, float x, float y) {
-		super(x, y, (int)(GamePanel.TILE_SIZE * WIDTH_TILES), (int)(GamePanel.TILE_SIZE * HEIGHT_TILES));
+		super(x, y, (int)(GamePanel.TILE_SIZE * WIDTH_TILES), (int)(GamePanel.TILE_SIZE * HEIGHT_TILES), ownerFaction);
 
         TYPE = BuildingType.BARRACKS;
 
@@ -60,7 +60,7 @@ public class Barracks extends AbstractBuilding {
     	currentHealth = maxHealth; 
         
         this.map = map;
-        this.ownerFaction = ownerFaction;
+        //this.ownerFaction = ownerFaction;
 
         this.currentState = State.UNDER_CONSTRUCTION;
         generateBarracks(GameColors.BUILDING_BARRACKS_UNDER_CONSTRUCTION);
@@ -79,8 +79,11 @@ public class Barracks extends AbstractBuilding {
                     generateBarracks(GameColors.BUILDING_BARRACKS);
                     Logger.log("Construction Completed.");
                     System.out.println("Construction Completed...");
-                    // activate commandPanel
-                    ownerFaction.getCommandPanel().setCommandsForBuilding(this);
+
+                    if (!ownerFaction.isAI) {
+                        // activate commandPanel
+                        ownerFaction.getCommandPanel().setCommandsForBuilding(this);
+                    }
                 }
                 return;
             case State.IN_OPERATION:

@@ -18,6 +18,7 @@ import Util.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class WorkerUnit extends AbstractUnit implements IControllable {
@@ -45,6 +46,7 @@ public class WorkerUnit extends AbstractUnit implements IControllable {
 
     Vector2Int start, end; // Start and destination cells
 
+    Random rand = new Random();
     private long blockStartTime = 0; // Timer for handling blocked cells
     private boolean isWaiting = false; // Indicates if the unit is waiting for a cell to clear
 
@@ -52,6 +54,7 @@ public class WorkerUnit extends AbstractUnit implements IControllable {
     private AbstractUnit repairUnitRef;
     private ResourceNode resourceNodeRef;
     private boolean commandCenterDeployed;
+    private boolean automateGathering;
 
     private IUnitState<WorkerUnit> currentState;
 
@@ -70,8 +73,17 @@ public class WorkerUnit extends AbstractUnit implements IControllable {
         pf = new Pathfinder();
 
         this.currentNode = GamePanel.convertWorldToCell(x, y);
-        this.currentState = new IdleState<WorkerUnit>();
-        issueCommand(CommandType.IDLE, null);
+
+        if (ownerFaction.isAI) {
+            ResourceNode node = findNearestResourceNode();
+            setResourceNodeRef(node);
+            Vector2Int cellPos = GamePanel.convertWorldToCell(node.getX(), node.getY());
+            ctx = new CommandContext().setGathering(node.getType(), cellPos);
+            issueCommand(CommandType.GATHER, ctx);
+        } else {
+            this.currentState = new IdleState<WorkerUnit>();
+            issueCommand(CommandType.IDLE, null);
+        }
     }
 
     @Override
@@ -162,6 +174,7 @@ public class WorkerUnit extends AbstractUnit implements IControllable {
     }
 
     public void endDelivery() {
+        // Forget last building to be able to search for new nearest next time
         commandCenterDeployed = false;
         buildingRef = null;
     }
@@ -203,11 +216,28 @@ public class WorkerUnit extends AbstractUnit implements IControllable {
                     ctx = new CommandContext().setGathering(currentGatherType, cellPos);
                     issueCommand(CommandType.GATHER, ctx);
                 } else {
+                    /*
                     issueCommand(CommandType.IDLE, null);
                     Logger.log("ResourceNode depleted, assign new location.");
                     System.out.println("ResourceNode depleted, assign new location.");
+                     */
+                    checkForGatherRestart();
                 }
             }
+        }
+    }
+
+    private void checkForGatherRestart() {
+        if (ownerFaction.isAI) {
+            ResourceNode node = findNearestResourceNode();
+            setResourceNodeRef(node);
+            Vector2Int cellPos = GamePanel.convertWorldToCell(node.getX(), node.getY());
+            ctx = new CommandContext().setGathering(node.getType(), cellPos);
+            issueCommand(CommandType.GATHER, ctx);
+        } else {
+            issueCommand(CommandType.IDLE, null);
+            Logger.log("ResourceNode depleted, assign new location.");
+            System.out.println("ResourceNode depleted, assign new location.");
         }
     }
 
@@ -252,7 +282,11 @@ public class WorkerUnit extends AbstractUnit implements IControllable {
     public void moveToResourceNodeSite(){
         List<Vector2Int> freeCellList = findAllAdjacentFree(map, ctx.getCellPos(), 1, 1);
         this.start = GamePanel.convertWorldToCell(this.x, this.y);
-        this.end = freeCellList.get(2);
+
+        int max = freeCellList.toArray().length - 1;
+        int min = 0;
+        int randomFreeCell = min + (int)(Math.random() * ((max - min) + 1));
+        this.end = freeCellList.get(randomFreeCell);  // 2
 
         if (map.intArr[end.y][end.x] == 1) {
             Logger.log("ResourceNode site is blocked.");
@@ -285,6 +319,27 @@ public class WorkerUnit extends AbstractUnit implements IControllable {
             }
         }
     }
+
+    private ResourceNode findNearestResourceNode() {
+        ArrayList<ResourceNode> sortedNodes = new ArrayList<>();
+        ResourceNode nearest = null;
+        float bestDist = Float.MAX_VALUE;
+        for (ResourceNode b : ownerFaction.getResourceManager().getWorldNodes()) {
+            float d = calculateDistance(b.getX(), b.getY());
+            if (d < bestDist) {
+                bestDist = d;
+                nearest = b;
+                sortedNodes.add(b);
+            }
+        }
+        Random rand = new Random();
+        int size = sortedNodes.size();
+        int randomIndex = size - 1 - rand.nextInt(3);  // picks size-1, size-2, or size-3
+        ResourceNode pickNear = sortedNodes.get(randomIndex);
+        return pickNear;
+    }
+
+
 
     /**
      * Repair section
@@ -399,8 +454,14 @@ public class WorkerUnit extends AbstractUnit implements IControllable {
             Vector2 targetPos = GamePanel.convertCellToWorld(nextNode.x, nextNode.y);
 
             // Check if the next cell is blocked
+            /*
             if (isBlocked(nextNode.x, nextNode.y) && currentIndex > 0) {
                 handleBlockedCell(nextNode);
+                return;
+            }*/
+            Vector2Int blocked = getFirstBlockedNodeAhead(LOOKAHEAD);
+            if (blocked != null) {
+                handleBlockedCell(blocked);
                 return;
             }
 
@@ -476,6 +537,7 @@ public class WorkerUnit extends AbstractUnit implements IControllable {
     }
 
     // Handles when the next cell is blocked
+    /*
     private void handleBlockedCell(Vector2Int blockedNode) {
         if (!isWaiting) {
             isWaiting = true;
@@ -503,6 +565,73 @@ public class WorkerUnit extends AbstractUnit implements IControllable {
             }
         }
     }
+    */
+
+    private static final int LOOKAHEAD = 5;
+    private long waitThresholdTime = 0;
+
+    // Returns the first blocked node ahead, or null if all clear
+    private Vector2Int getFirstBlockedNodeAhead(int lookahead) {
+        if (path == null || path.isEmpty()) return null;
+
+        int from = Math.max(1, currentIndex); // often path[0] is the start/current cell
+        int to   = Math.min(path.size() - 1, currentIndex + lookahead);
+
+        for (int i = from; i <= to; i++) {
+            Vector2Int n = path.get(i);
+            if (isBlocked(n.x, n.y)) return n;
+        }
+        return null;
+    }
+
+    private void handleBlockedCell(Vector2Int blockedNode) {
+
+        // If it cleared, resume immediately
+        if (!isBlocked(blockedNode.x, blockedNode.y)) {
+            isWaiting = false;
+            blockStartTime = 0;
+            return;
+        }
+
+        // Start waiting (roll a threshold ONCE)
+        if (!isWaiting) {
+            isWaiting = true;
+            blockStartTime = System.currentTimeMillis();
+
+            // Randomize between 500 and 1000
+            waitThresholdTime = 500 + rand.nextInt(501);
+            vel_x = 0;
+            vel_y = 0;
+            return;
+        }
+
+        long now = System.currentTimeMillis();
+        long elapsed = now - blockStartTime;
+
+        if (elapsed > waitThresholdTime) { // threshold from 500 to 1000 randomised
+
+            // Try to repath (DO NOT overwrite path unless it succeeds)
+            start = GamePanel.convertWorldToCell(this.x, this.y);
+            List<Vector2Int> newPath = pf.FindPath(map.intArr, start, end);
+
+            if (newPath != null && !newPath.isEmpty()) {
+                path = newPath;
+                currentIndex = 0;
+
+                // Reset waiting state
+                isWaiting = false;
+                blockStartTime = 0;
+                return;
+            }
+
+            // Repath failed: stay in MVG and keep waiting, try again later
+            // (This prevents falling back to IDL permanently.)
+            vel_x = 0;
+            vel_y = 0;
+            blockStartTime = now; // reset timer so we don't spam A* every frame
+        }
+    }
+
 
     // Checks if a cell is blocked
     private boolean isBlocked(int x, int y) {
@@ -607,6 +736,14 @@ public class WorkerUnit extends AbstractUnit implements IControllable {
 
     public ResourceType getCurrentGatherType(){
         return currentGatherType;
+    }
+
+    public void setAutomateGathering(boolean automateGathering) {
+        this.automateGathering = automateGathering;
+    }
+
+    public boolean getAutomateGathering() {
+        return automateGathering;
     }
 
 

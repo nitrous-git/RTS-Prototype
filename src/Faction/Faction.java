@@ -1,38 +1,43 @@
 package Faction;
 
+import GameObjects.Tile;
 import Manager.*;
 import Panel.CommandPanel;
 import Util.Camera;
 import Util.TileMap;
+import Util.Vector2Int;
 
 import java.awt.*;
 
 public class Faction {
     private final String name;
+    private final TileMap map;
     private final ResourceManager RM;
     private final BuildingManager BM;
     private final UnitManager UM;
     private final FactionController controller;
+    private Vector2Int spawnSeed;
+    public boolean isAI;
 
-    public Faction(String name, FactionController controller, UnitManager UM, ResourceManager RM, TileMap map) {
+    public Faction(String name, FactionController controller, UnitManager UM, BuildingManager BM, ResourceManager RM, TileMap map) {
         this.name = name;
+        this.map = map;
         this.RM = RM;
-        this.BM = new BuildingManager(map, this);
+        this.BM = BM;
         this.UM = UM;
         this.controller = controller;
         controller.init(this);
-
-        //RM.buildResourceList();
+        isAI = controller instanceof AIController;
     }
 
     public void update() {
-        //RM.update();
         BM.update();
         UM.update();
+
+        if (isAI) controller.update();
     }
 
     public void draw(Graphics g, Camera camera) {
-        //RM.draw(g, camera);
         BM.draw(g, camera);
         UM.draw(g, camera);
     }
@@ -43,4 +48,11 @@ public class Faction {
     public FactionController getController() { return controller; }
     public String getName() { return name; }
     public CommandPanel getCommandPanel() { return getController().getCP(); }
+    public TileMap getMap() { return map; }
+    public Vector2Int getSpawnSeed() { return spawnSeed; }
+
+    public void setSpawnSeed(SpawnSeedRepository SSR, int preferredIndex) {
+        this.spawnSeed = SSR.requestSeed(preferredIndex);
+    }
+
 }

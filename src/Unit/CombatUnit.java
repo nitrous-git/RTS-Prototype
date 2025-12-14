@@ -4,6 +4,7 @@ import java.awt.Graphics;
 import java.sql.DatabaseMetaData;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import Command.CommandContext;
 import Command.CommandType;
@@ -42,7 +43,8 @@ public class CombatUnit extends AbstractUnit implements IControllable {
 	
     private long blockStartTime = 0; // Timer for handling blocked cells
     private boolean isWaiting = false; // Indicates if the unit is waiting for a block to clear
-	
+    Random random = new Random();
+
 	// Constructor
     public CombatUnit(TileMap map, Faction ownerFaction, float x, float y, int width, int height) {
     	super(x, y, width, height);
@@ -158,9 +160,17 @@ public class CombatUnit extends AbstractUnit implements IControllable {
             Vector2 targetPos = GamePanel.convertCellToWorld(nextNode.x, nextNode.y);
             
             // Check if the next cell is blocked
+            /*
             if (isBlocked(nextNode.x, nextNode.y) && currentIndex > 0) {
                handleBlockedCell(nextNode);
                return;
+            }
+            */
+
+            Vector2Int blocked = getFirstBlockedNodeAhead(LOOKAHEAD);
+            if (blocked != null) {
+                handleBlockedCell(blocked);
+                return;
             }
             
             float distance = calculateDistance(targetPos.x, targetPos.y);
@@ -235,6 +245,7 @@ public class CombatUnit extends AbstractUnit implements IControllable {
     }
 
     // Handles when the next cell is blocked
+    /*
     private void handleBlockedCell(Vector2Int blockedNode) {
         if (!isWaiting) {
             isWaiting = true;
@@ -242,19 +253,19 @@ public class CombatUnit extends AbstractUnit implements IControllable {
         } else {
             long elapsed = System.currentTimeMillis() - blockStartTime;
             if (elapsed > 1000) { // 500 ms threshold
-          
+
                 // Recalculate path
                 start = GamePanel.convertWorldToCell(this.x, this.y);
                 path = pf.FindPath(map.intArr, start, end);
-                
+
                 if (path == null || path.isEmpty()) {
                     stopMovement();
                     // the path might be blocked indefinitely
                     // go back to IDL state
                     issueCommand(CommandType.IDLE, null);
                     return;
-                } 
-                
+                }
+
                 // Reset waiting state
                 isWaiting = false;
                 blockStartTime = 0;
@@ -262,7 +273,64 @@ public class CombatUnit extends AbstractUnit implements IControllable {
             }
         }
     }
-    
+    */
+
+    private static final int LOOKAHEAD = 5;
+
+    // Returns the first blocked node ahead, or null if all clear
+    private Vector2Int getFirstBlockedNodeAhead(int lookahead) {
+        if (path == null || path.isEmpty()) return null;
+
+        int from = Math.max(1, currentIndex); // often path[0] is the start/current cell
+        int to   = Math.min(path.size() - 1, currentIndex + lookahead);
+
+        for (int i = from; i <= to; i++) {
+            Vector2Int n = path.get(i);
+            if (isBlocked(n.x, n.y)) return n;
+        }
+        return null;
+    }
+
+    private void handleBlockedCell(Vector2Int blockedNode) {
+
+        if (!isBlocked(blockedNode.x, blockedNode.y)) {
+            isWaiting = false;
+            blockStartTime = 0;
+            return;
+        }
+
+        if (!isWaiting) {
+            isWaiting = true;
+            blockStartTime = System.currentTimeMillis();
+            return;
+        }
+
+        long elapsed = System.currentTimeMillis() - blockStartTime;
+
+        if (elapsed > 1000) { // 1000 ms threshold
+
+            // Recalculate path
+            start = GamePanel.convertWorldToCell(this.x, this.y);
+            path = pf.FindPath(map.intArr, start, end);
+
+            if (path == null || path.isEmpty()) {
+                stopMovement();
+                issueCommand(CommandType.IDLE, null);
+                return;
+            }
+
+            // Reset waiting state
+            isWaiting = false;
+            blockStartTime = 0;
+            currentIndex = 0;
+        }
+    }
+
+
+
+
+
+
     // Checks if a cell is blocked
     private boolean isBlocked(int x, int y) {
         // Check if the cell is occupied but not the current cell

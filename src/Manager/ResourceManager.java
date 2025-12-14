@@ -22,7 +22,7 @@ import java.util.List;
 public class ResourceManager implements IResourceManager {
 
     ///  DECLARATIONS  ///
-    private int mineralCount = 250;
+    private int mineralCount = 1000;
     private int gasCount     = 0;
     private int usedSupply   = 0;
     private int maxSupply    = 10;    // default starting supply
@@ -186,6 +186,10 @@ public class ResourceManager implements IResourceManager {
 
     public void setMineralCount(int mineralCount) {
         this.mineralCount = mineralCount;
+    }
+
+    public List<ResourceNode> getWorldNodes() {
+        return worldNodes;
     }
 
 }

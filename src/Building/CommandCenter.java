@@ -36,7 +36,7 @@ public class CommandCenter extends AbstractBuilding {
 
     private float spawnOriginX;
     TileMap map;
-    Faction ownerFaction;
+    //Faction ownerFaction;
     BuildingManager bm;
     private float spawnOriginY;
     private Vector2 worldPos;
@@ -44,7 +44,7 @@ public class CommandCenter extends AbstractBuilding {
 
     // Class Constructor
     public CommandCenter(TileMap map, Faction ownerFaction, BuildingManager bm, float x, float y) {
-        super(x, y, (int)(GamePanel.TILE_SIZE * WIDTH_TILES), (int)(GamePanel.TILE_SIZE * HEIGHT_TILES));
+        super(x, y, (int)(GamePanel.TILE_SIZE * WIDTH_TILES), (int)(GamePanel.TILE_SIZE * HEIGHT_TILES), ownerFaction);
 
         TYPE = BuildingType.COMMAND_CENTER;
 
@@ -61,7 +61,7 @@ public class CommandCenter extends AbstractBuilding {
         currentHealth = maxHealth;
 
         this.map = map;
-        this.ownerFaction = ownerFaction;
+        //this.ownerFaction = ownerFaction;
         this.bm = bm;
 
         this.currentState = State.UNDER_CONSTRUCTION;
@@ -81,8 +81,11 @@ public class CommandCenter extends AbstractBuilding {
                     generateCommandCenter(GameColors.BUILDING_COMMAND_CENTER);
                     Logger.log("Construction Completed.");
                     System.out.println("Construction Completed...");
-                    // activate commandPanel
-                    ownerFaction.getCommandPanel().setCommandsForBuilding(this);
+
+                    if (!ownerFaction.isAI) {
+                        // activate commandPanel
+                        ownerFaction.getCommandPanel().setCommandsForBuilding(this);
+                    }
                 }
                 return;
             case State.IN_OPERATION:

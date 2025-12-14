@@ -63,7 +63,7 @@ public class Camera {
 	}
 	
 	public void update() {
-		if (down && getY() < (GamePanel.ROWS * GamePanel.TILE_SIZE)-(GamePanel.HEIGHT-3.5f*GamePanel.TILE_SIZE)) {
+		if (down && getY() < (GamePanel.ROWS * GamePanel.TILE_SIZE)-(GamePanel.HEIGHT-0.0f*GamePanel.TILE_SIZE)) {
 			setYVelocity(4.5f);
 			moveY();
 		}
@@ -75,7 +75,7 @@ public class Camera {
 			setXVelocity(-4.5f);
 			moveX();
 		}
-		if (right && getX() < (GamePanel.COLS * GamePanel.TILE_SIZE)-(GamePanel.WIDTH-3.5f*GamePanel.TILE_SIZE)) {
+		if (right && getX() < (GamePanel.COLS * GamePanel.TILE_SIZE)-(GamePanel.WIDTH-0.0f*GamePanel.TILE_SIZE)) {
 			setXVelocity(4.5f);
 			moveX();
 		}

@@ -1,5 +1,6 @@
 package Faction;
 
+import Manager.GameContext;
 import Panel.CommandPanel;
 import Panel.GamePanel;
 import Util.Camera;
@@ -14,6 +15,7 @@ public interface FactionController {
     void init(GamePanel GP,
               CommandPanel CP,
               SelectionBox SB,
+              GameContext GM,
               Faction playerFaction,
               Camera camera);
 

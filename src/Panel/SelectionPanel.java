@@ -11,6 +11,7 @@ import Building.AbstractBuilding;
 import Building.Barracks;
 import Building.CommandCenter;
 import Faction.Faction;
+import Manager.GameContext;
 import Manager.ResourceManager;
 import Resource.ResourceNode;
 import Unit.AbstractUnit;
@@ -23,9 +24,11 @@ import Unit.WorkerUnit;
 public class SelectionPanel extends JPanel {
 
     private Faction playerFaction;
+    private GameContext GC;
 
-    public SelectionPanel(Faction playerFaction) {
+    public SelectionPanel(Faction playerFaction, GameContext GC) {
         this.playerFaction = playerFaction;
+        this.GC = GC;
         setPreferredSize(new Dimension(500, 150));
     }
 
@@ -34,7 +37,7 @@ public class SelectionPanel extends JPanel {
         super.paintComponent(g);
         List<AbstractUnit> sel = PlayerUnitManager.getSelectedUnitList();
         List<ResourceNode> rnl = playerFaction.getResourceManager().getSelectedResourceNodeList();
-        IEntity sb = playerFaction.getBuildingManager().getSelectedBuilding();
+        IEntity sb = GC.getSelectedBuilding(); //playerFaction.getBuildingManager().getSelectedBuilding();
 
         g.setColor(Color.BLACK);
         int y = 20;
@@ -118,6 +121,8 @@ public class SelectionPanel extends JPanel {
         g.drawString("Tag: " + ab.getTag(), 10, y); 
         y += 20;
         g.drawString("ID: " + ab.getID(), 10, y); 
+        y += 20;
+        g.drawString("Faction: " + ab.getOwnerFaction().getName(), 10, y);
         y += 20;
         g.drawString("Health: " + (int)ab.getCurrentHealth() + "/" + (int)ab.getMaxHealth(), 10, y);
         

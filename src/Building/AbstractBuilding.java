@@ -5,6 +5,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import Faction.Faction;
 import GameObjects.Entity;
 import Unit.AbstractUnit;
 
@@ -12,11 +13,12 @@ import Unit.AbstractUnit;
  * Base class for all buildings in the game.
  */
 public class AbstractBuilding extends Entity{
-	
+
     Rectangle2D.Float healthBar;
     float maxHealth = 100;
     float currentHealth = maxHealth;
     protected boolean selected;
+    protected Faction ownerFaction;
 
     // production queue
     public static final int MAX_QUEUE      = 5;
@@ -34,9 +36,10 @@ public class AbstractBuilding extends Entity{
 
     public BuildingType TYPE;
 
-    public AbstractBuilding(float x, float y, int width, int height) {
+    public AbstractBuilding(float x, float y, int width, int height, Faction ownerFaction) {
 		super(x, y, width, height);
 		initHitbox(x, y, width, height);
+        this.ownerFaction = ownerFaction;
 	}
 	
 	private void initHitbox(float x, float y, int width, int height) {
@@ -106,4 +109,7 @@ public class AbstractBuilding extends Entity{
     public boolean isProducing() { return !productionQueue.isEmpty(); }
 
     public int getQueueSize() { return productionQueue.size(); }
+
+    public Faction getOwnerFaction() { return ownerFaction; }
+
 }

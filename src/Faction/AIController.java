@@ -1,27 +1,27 @@
 package Faction;
 
+import EnemyAI.AIManager;
+import Manager.GameContext;
 import Panel.CommandPanel;
 import Panel.GamePanel;
 import Util.Camera;
 import Util.SelectionBox;
 
 public class AIController implements FactionController {
+    private AIManager aiManager;
     private Faction faction;
     private int tick = 0;
 
     @Override
     public void init(Faction faction) {
         this.faction = faction;
+        aiManager = new AIManager(faction);
     }
 
     @Override
     public void update() {
-        tick++;
-        if (tick % 300 == 0) {
-            // Basic AI behavior goes here ...
-        }
+        aiManager.update();
     }
-
 
     // ------------------------------------------------------------------------------
     @Override
@@ -31,6 +31,7 @@ public class AIController implements FactionController {
     public void init(GamePanel GP,
                      CommandPanel CP,
                      SelectionBox SB,
+                     GameContext GC,
                      Faction playerFaction,
                      Camera camera) {}        // no-op allowed
 
