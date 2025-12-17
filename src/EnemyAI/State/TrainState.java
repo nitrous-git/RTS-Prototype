@@ -28,8 +28,16 @@ public class TrainState extends AIState {
         for (int i = 0; i < BM.buildingList.size(); i++) {
             // Produce worker unit from the first available command center
             if (BM.buildingList.get(i) instanceof CommandCenter &&
-                BM.buildingList.get(i).productionQueue.size() < AbstractBuilding.MAX_QUEUE) {
-                ((CommandCenter) BM.buildingList.get(i)).produce(UnitType.WORKER);
+                    BM.buildingList.get(i).productionQueue.size() < AbstractBuilding.MAX_QUEUE &&
+                        this.unitType == UnitType.WORKER) {
+                ((CommandCenter) BM.buildingList.get(i)).produce(unitType);
+                break;
+            }
+            // Produce combat unit from the first available barracks
+            if (BM.buildingList.get(i) instanceof Barracks &&
+                    BM.buildingList.get(i).productionQueue.size() < AbstractBuilding.MAX_QUEUE &&
+                    this.unitType == UnitType.COMBAT) {
+                ((Barracks) BM.buildingList.get(i)).produce(unitType);
                 break;
             }
         }

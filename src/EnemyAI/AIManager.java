@@ -50,18 +50,18 @@ public class AIManager {
 
     private void scheduleActions() {
         float timeFactor = 1000f;
-        aiStateContext.setBuildContext(0f*timeFactor, BuildingType.COMMAND_CENTER);
-        stateQueue.add( new BuildState(this, aiStateContext, "buildCommandCenter"));
+        ////aiStateContext.setBuildContext(0f*timeFactor, BuildingType.COMMAND_CENTER);
+        ////stateQueue.add( new BuildState(this, aiStateContext, "buildCommandCenter"));
         //currentState = stateQueue.poll();
         //System.out.println("stateQueue peek at NAME : " + currentState.name);
         //System.out.println("currentState timestamp : " + currentState.timestamp);
 
-        aiStateContext.setTrainUnitContext(10f*timeFactor, UnitType.WORKER);
-        stateQueue.add( new TrainState(this, aiStateContext, "trainFirstUnit"));
-        aiStateContext.setTrainUnitContext(11f*timeFactor, UnitType.WORKER);
-        stateQueue.add( new TrainState(this, aiStateContext, "trainFirstUnit"));
-        aiStateContext.setTrainUnitContext(12f*timeFactor, UnitType.WORKER);
-        stateQueue.add( new TrainState(this, aiStateContext, "trainFirstUnit"));
+        ////aiStateContext.setTrainUnitContext(10f*timeFactor, UnitType.WORKER);
+        ////stateQueue.add( new TrainState(this, aiStateContext, "trainWorkerUnit"));
+        ////aiStateContext.setTrainUnitContext(11f*timeFactor, UnitType.WORKER);
+        ////stateQueue.add( new TrainState(this, aiStateContext, "trainWorkerUnit"));
+        ////aiStateContext.setTrainUnitContext(12f*timeFactor, UnitType.WORKER);
+        ////stateQueue.add( new TrainState(this, aiStateContext, "trainWorkerUnit"));
         //currentState = stateQueue.poll();
         //System.out.println("stateQueue peek at NAME : " + currentState.name);
         //System.out.println("currentState timestamp : " + currentState.timestamp);
@@ -70,23 +70,27 @@ public class AIManager {
         //stateQueue.add( new TrainState(this, aiStateContext));
 
 
-        //aiStateContext.setBuildContext(15f*timeFactor, BuildingType.SUPPLY_DEPOT);
+        ////aiStateContext.setBuildContext(15f*timeFactor, BuildingType.SUPPLY_DEPOT);
         //System.out.println("Building Type : "+  aiStateContext.getBuildingType() + ", Timestamp : " + aiStateContext.getTimestamp());
-        //stateQueue.add( new BuildState(this, aiStateContext, "buildSupplyDepot"));
+        ////stateQueue.add( new BuildState(this, aiStateContext, "buildSupplyDepot"));
         //currentState = stateQueue.poll();
         //System.out.println("currentState NAME : " + currentState.name);
         //System.out.println("currentState timestamp : " + currentState.timestamp);
 
 
-        //aiStateContext.setBuildContext(30f*timeFactor, BuildingType.BARRACKS);
+        aiStateContext.setBuildContext(0f*timeFactor, BuildingType.BARRACKS);
         //System.out.println("Building Type : "+  aiStateContext.getBuildingType() + ", Timestamp : " + aiStateContext.getTimestamp());
-        //stateQueue.add( new BuildState(this, aiStateContext, "buildBarracks"));
+        stateQueue.add( new BuildState(this, aiStateContext, "buildBarracks"));
         //currentState = stateQueue.poll();
         //System.out.println("currentState NAME : " + currentState.name);
         //System.out.println("currentState timestamp : " + currentState.timestamp);
 
-        //aiStateContext.setTrainUnitContext(250f, UnitType.COMBAT));
-        //stateQueue.add( new TrainState(this, aiStateContext));
+        aiStateContext.setTrainUnitContext(10f*timeFactor, UnitType.COMBAT);   //40
+        stateQueue.add( new TrainState(this, aiStateContext, "trainCombatUnit"));
+        aiStateContext.setTrainUnitContext(12f*timeFactor, UnitType.COMBAT); // 42
+        stateQueue.add( new TrainState(this, aiStateContext, "trainCombatUnit"));
+        aiStateContext.setTrainUnitContext(16f*timeFactor, UnitType.COMBAT); // 44
+        stateQueue.add( new TrainState(this, aiStateContext, "trainCombatUnit"));
     }
 
     public Vector2Int findNearbyBuildLocation(Vector2Int seed, int w, int h, int padding) {

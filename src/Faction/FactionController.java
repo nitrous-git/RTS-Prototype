@@ -21,5 +21,9 @@ public interface FactionController {
 
     void update();
 
+    // get the command panel of this controller
     CommandPanel getCP();
+
+    // get camera reference from the controller
+    Camera getCamera();
 }

@@ -52,4 +52,5 @@ public class PlayerController implements FactionController {
 
     public CommandPanel getCP() { return CP; }
     public GameContext getGC() { return GC; }
+    public Camera getCamera() { return camera; }
 }

@@ -11,6 +11,11 @@ public class AIController implements FactionController {
     private AIManager aiManager;
     private Faction faction;
     private int tick = 0;
+    private Camera camera;
+
+    public AIController(Camera camera){
+        this.camera = camera;
+    }
 
     @Override
     public void init(Faction faction) {
@@ -26,6 +31,7 @@ public class AIController implements FactionController {
     // ------------------------------------------------------------------------------
     @Override
     public CommandPanel getCP() { return null; } // AI control have null command panel
+    public Camera getCamera() { return camera; };
 
     @Override
     public void init(GamePanel GP,

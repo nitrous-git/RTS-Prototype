@@ -210,7 +210,7 @@ public class CombatUnit extends AbstractUnit implements IControllable {
 
     @Override
     // Set a new target and compute velocity so we move toward it.
-    public void moveTo(float newX, float newY, Camera camera ) {
+    public void moveTo(float newX, float newY, Camera camera) {
     	
     	this.start = GamePanel.convertWorldToCell(this.x, this.y);
     	this.end = GamePanel.convertWorldToCell(newX, newY);

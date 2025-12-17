@@ -38,3 +38,20 @@ When we press a command from CommandActionListener we setMode of navigation insi
 From this navigation mode we, if constraint are respected, we issueCommand the correct way
 
 Ex: CommandActionListener -> MouseEventHandler -> WorkerUnit
+
+----------------------------------------------------------------------------------
+Watch out for the 	PlayerController playerController = new PlayerController();
+                    AIController aiController = new AIController(camera);
+Instantiation inside the GameBuilder, to should be more uniform (AI, and player has same initialisation)
+Right now we have AiController  that need to have Camera in the constructor for moving unit to rally point from Barracks
+
+and also a 	    // - Prepare user controller -
+           		playerController.init(GP, CP, SB, GC, playerFaction, camera);
+
+check the interface FactionController with 2 method overload (surcharge), AiController doesn't use .init() inside
+the GameBuilder (and we should probably avoid using for PlayerController either.. )
+Anyway refactor this later to find the most simple code structure (when we have a complete Ai behavior)
+
+
+
+

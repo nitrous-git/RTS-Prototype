@@ -5,6 +5,8 @@ import java.awt.Graphics;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import Command.CommandContext;
+import Command.CommandType;
 import Faction.Faction;
 import Resource.Cost;
 import Resource.ResourceType;
@@ -39,7 +41,7 @@ public class Barracks extends AbstractBuilding {
     private float spawnOriginY;
     private Vector2 worldPos;
     private Vector2Int cellPos;
-
+    private Vector2Int rallyPoint;
 
     // Class Constructor
     public Barracks(TileMap map, Faction ownerFaction, float x, float y) {
@@ -55,7 +57,7 @@ public class Barracks extends AbstractBuilding {
         // drop the unit just below the building
         this.spawnOriginX  = x + (GamePanel.TILE_SIZE * WIDTH_TILES - GamePanel.TILE_SIZE) / 2;
         this.spawnOriginY  = y +  GamePanel.TILE_SIZE * HEIGHT_TILES;
-		  
+
     	setMaxHealth(300.0f);
     	currentHealth = maxHealth; 
         
@@ -64,7 +66,13 @@ public class Barracks extends AbstractBuilding {
 
         this.currentState = State.UNDER_CONSTRUCTION;
         generateBarracks(GameColors.BUILDING_BARRACKS_UNDER_CONSTRUCTION);
-	}
+
+        //System.out.println(ownerFaction.getName() + "Faction has instantiate Barracks ID :" + this.getID());
+        //System.out.printf("Barracks instantiated at location %d %d%n", cellPos.x, cellPos.y);
+
+        // compute a rally point if faction has AIController (map must be instantiated)
+        if (ownerFaction.isAI) this.rallyPoint = computeRallyCell();
+    }
 
     @Override
     public void update() {
@@ -180,6 +188,14 @@ public class Barracks extends AbstractBuilding {
 
         // now mark it occupied
         map.intArr[free.y][free.x] = CombatUnit.TOKEN;
+
+
+        if (rallyPoint != null){
+            Vector2Int nextFreeAtRallyPoint = findNearestFreeCell(rallyPoint);
+            Vector2 rallyDestination = GamePanel.convertCellToWorld(nextFreeAtRallyPoint.x, nextFreeAtRallyPoint.y);  // might produce null, check that later... ouff
+            CommandContext ctx = new CommandContext().setDestination(rallyDestination.x, rallyDestination.y, ownerFaction.getController().getCamera());
+            ((CombatUnit) unit).issueCommand(CommandType.MOVE, ctx);
+        }
     }
 
     /// -----------------------------------------
@@ -237,6 +253,85 @@ public class Barracks extends AbstractBuilding {
         // no free cell found
         return null;
     }
+
+    static final int[][] OFFSETS = {
+            // SOUTH
+            { 0,  8}, { 2,  8}, {-2,  8},
+            { 0, 12}, { 2, 12}, {-2, 12},
+
+            // NORTH
+            { 0, -8}, { 2, -8}, {-2, -8},
+            { 0,-12}, { 2,-12}, {-2,-12},
+
+            // EAST
+            { 8,  0}, { 8,  2}, { 8, -2},
+            {12,  0}, {12,  2}, {12, -2},
+
+            // WEST
+            {-8,  0}, {-8,  2}, {-8, -2},
+            {-12, 0}, {-12, 2}, {-12,-2},
+    };
+
+    // Compute a rally point automatically from a list of offsets candidates
+    // fast deterministic approach, not a very heavy calculation
+    private Vector2Int computeRallyCell(){
+        Vector2Int topLeftCell = GamePanel.convertWorldToCell(this.x, this.y);
+        Vector2Int centerCell = new Vector2Int(
+                (int) (topLeftCell.x + WIDTH_TILES / 2),
+                (int) (topLeftCell.y + HEIGHT_TILES / 2)
+        );
+
+        Vector2Int best = null;
+        int bestScore = Integer.MIN_VALUE;
+
+        for (int[] off : OFFSETS) {
+            //System.out.printf("Testing offset %d, %d%n", centerCell.x + off[0], centerCell.y + off[1]);
+            Vector2Int desired = new Vector2Int(centerCell.x + off[0], centerCell.y + off[1]);
+            if (!inBounds(desired)) continue;
+
+            Vector2Int free = findNearestFreeCell(desired);
+            if (free == null) continue;
+
+            int score = freeCountInRect(free, 2, 2); // 5x5 openness
+            if (score >= 20) return free;            // early accept
+
+            if (score > bestScore) {
+                bestScore = score;
+                best = free;
+            }
+        }
+
+        Vector2Int fallbackCell = GamePanel.convertWorldToCell(spawnOriginX, spawnOriginY);
+        //System.out.println(ownerFaction.getName() + "Faction has compute rally point (" + best.x + ", " + best.y + ") for Baracks ID :" + this.getID());
+        //Logger.log(ownerFaction.getName() + "Faction has set rally point to " + best.x + ", " + best.y);
+        return (best != null) ? best : findNearestFreeCell(fallbackCell);
+    }
+
+    private int freeCountInRect(Vector2Int origin, int size_x, int size_y) {
+        int score = 0;
+        for (int i = 0; i < size_y; i++) {
+            for (int j = 0; j < size_x; j++) {
+                Vector2Int cell = new Vector2Int(origin.x + j, origin.y + i);
+
+                // If the rectangle goes out of bounds, is invalid
+                if (!inBounds(cell)) {
+                    return -1; // "invalid" sentinel value
+                }
+
+                // Free = 0, anything else is occupied/blocked
+                if (map.intArr[cell.y][cell.x] == 0) {
+                    score++;
+                }
+            }
+        }
+        return score;
+    }
+
+    private boolean inBounds(Vector2Int vec) {
+        return vec.x >= 0 && vec.y >= 0 && vec.x < map.column && vec.y < map.row;
+    }
+
+
 
     /// -----------------------------------------
 

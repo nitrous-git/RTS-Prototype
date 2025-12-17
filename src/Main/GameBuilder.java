@@ -33,7 +33,7 @@ public class GameBuilder {
 		FactionManager FM = new FactionManager();
 
 		PlayerController playerController = new PlayerController();
-		AIController aiController = new AIController();
+		AIController aiController = new AIController(camera);
 
 		UnitManager PUM = new PlayerUnitManager(map);
 		BuildingManager PBM = new BuildingManager(map, GC);
@@ -65,6 +65,7 @@ public class GameBuilder {
 
 		// - Prepare user controller -
 		playerController.init(GP, CP, SB, GC, playerFaction, camera);
+
 
 		// — inject cross-panel references now they’re built —
 		//GP.setSP(SP);
