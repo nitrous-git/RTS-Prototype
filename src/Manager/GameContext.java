@@ -1,8 +1,8 @@
 package Manager;
 
 import Building.AbstractBuilding;
-import GameObjects.IEntity;
 import Unit.AbstractUnit;
+import Unit.IControllable;
 import Util.SelectionBox;
 
 import java.util.ArrayList;
@@ -14,7 +14,7 @@ public class GameContext {
     private List<AbstractBuilding> allBuildings = new ArrayList<>();
     private List<AbstractUnit> allUnits = new ArrayList<>();
     private AbstractBuilding selectedBuilding;
-    private AbstractUnit selectedUnit;
+    private List<AbstractUnit> selectedUnits;
 
     // Constructor
     public GameContext() {}
@@ -22,10 +22,12 @@ public class GameContext {
     // Helpers && Utilities //
     public void registerUnit(AbstractUnit u) {
         allUnits.add(u);
+        //System.out.println("AllUnits Size : " + allUnits.size() + " added : " + u.getOwnerFaction().getName());
     }
 
     public void unregisterUnit(AbstractUnit u) {
         allUnits.remove(u);
+        System.out.println("AllUnits Size : " + allUnits.size() + " removed : " + u.getOwnerFaction().getName());
     }
 
     public void registerBuilding(AbstractBuilding b) {
@@ -36,6 +38,7 @@ public class GameContext {
         allBuildings.remove(b);
     }
 
+    // Building Selection logic //
     public void checkBuildingSelection(SelectionBox SB) {
         // Clear all previous selections
         for (AbstractBuilding b : allBuildings) {
@@ -58,7 +61,7 @@ public class GameContext {
     }
 
     public void clearSelectedBuilding() {
-        AbstractBuilding ab = (AbstractBuilding)selectedBuilding;
+        AbstractBuilding ab = (AbstractBuilding) selectedBuilding;
         if (selectedBuilding != null) {
             ab.setSelected(false);
             selectedBuilding = null;
@@ -73,6 +76,40 @@ public class GameContext {
         }
         return null;
     }
+
+    // Unit Selection Logic //
+    // update the unit selected states
+    public void checkSelection(SelectionBox SB) {
+        for (AbstractUnit unit : allUnits) {
+            if (unit instanceof IControllable) {
+                IControllable cu = (IControllable)unit;
+                boolean unitSelected;
+                // Check if the unit is inside the selection box
+                unitSelected = SB.intersects(unit.hitbox);
+                cu.setSelected(unitSelected);
+
+                //System.out.println("Unit : " + ((AbstractUnit)cu).getID() + " is selected");
+            }
+        }
+    }
+
+    public List<AbstractUnit> constructSelectedUnitList() {
+        List<AbstractUnit> su = new ArrayList<>();
+        for (AbstractUnit unit : allUnits) {
+            if (unit instanceof IControllable) {
+                IControllable cu = (IControllable)unit;
+                if (cu.isSelected()) {
+                    su.add(unit);
+                }
+            }
+        }
+        selectedUnits = su;
+        return su;
+    }
+
+
+
+
 
 
     // Getter && Setter //

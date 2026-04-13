@@ -5,6 +5,7 @@ import java.sql.DatabaseMetaData;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import Command.CommandContext;
 import Command.CommandType;
@@ -53,13 +54,13 @@ public class CombatUnit extends AbstractUnit implements IControllable {
     	
     	// boost player unit health 
     	setMaxHealth(300.0f);
-    	currentHealth = 100f;
+    	currentHealth = 300f;
         healthBar.width = (float)(currentHealth/maxHealth)*2f*width;
 
         this.ownerFaction = ownerFaction;
     	this.map = map;
     	pf = new Pathfinder();
-    	
+
     	this.currentNode = GamePanel.convertWorldToCell(x, y);
         this.currentState = new IdleState<CombatUnit>();
         issueCommand(CommandType.IDLE, null);
@@ -217,7 +218,7 @@ public class CombatUnit extends AbstractUnit implements IControllable {
     	
     	//System.out.println("Start : " + start.toString());
     	//System.out.println("End : " + end.toString());
-    	if (PlayerUnitManager.getSelectedUnitList().size() > 1) {
+    	if (ownerFaction.getUnitManager().getGC().constructSelectedUnitList().size() > 1) {
     		end = getRandomNearbyPoint(end, 3);
 		}
     	//System.out.println("End : " + end.toString());
@@ -405,8 +406,11 @@ public class CombatUnit extends AbstractUnit implements IControllable {
      */
     @Override
 	public void updateUnitSensing() {
-		List<AbstractUnit> eul = EnemyUnitManager.unitList;
-        if (eul == null || eul.isEmpty()) return;
+		List<AbstractUnit> eul = getFilteredAnyOtherFactionUnitList(); //EnemyUnitManager.unitList; bad static call (old)
+        if (eul == null || eul.isEmpty()){
+            targetEnemyUnit = null;
+            return;
+        }
 
 		targetEnemyUnit = null;
         float max = (float) Double.MAX_VALUE;
@@ -414,11 +418,13 @@ public class CombatUnit extends AbstractUnit implements IControllable {
 		// find the closest enemy
 		for (int i = 0; i < eul.size(); i++) {
 			if ( visionbox.intersects(eul.get(i).getHitbox()) ) {
+                //System.out.println("eul size on runtime : " + eul.size() + " for unit : "+  ownerFaction.getName());
 				float distance = calculateDistance(eul.get(i).getX(), eul.get(i).getY());
 				
 				if (distance < max) {
 					// set closest to target enemy
 					targetEnemyUnit = eul.get(i);
+                    //System.out.println("targetEnemyUnit : " + targetEnemyUnit.getOwnerFaction().getName());
 					max = distance;
 				}
 
@@ -438,7 +444,7 @@ public class CombatUnit extends AbstractUnit implements IControllable {
 			shootingTimer++;
 			if (shootingTimer%25==0) {
 				//System.out.println("SHOOT");
-				Projectile p = new Projectile(this.x, this.y, 8, 8);
+				Projectile p = new Projectile(getFilteredAnyOtherFactionUnitList(), this.x, this.y, 8, 8);
 				p.setVelocity(targetEnemyUnit.x, targetEnemyUnit.y);
 				p.setTag("player_projectile");
 				projectileList.add(p);
@@ -451,6 +457,13 @@ public class CombatUnit extends AbstractUnit implements IControllable {
 			updateUnitSensing();
 		}
 	}
+
+    private List<AbstractUnit> getFilteredAnyOtherFactionUnitList(){
+        return ownerFaction.getUnitManager().getGC().getAllUnits()
+                .stream()
+                .filter(u -> !u.getOwnerFaction().getName().equals(ownerFaction.getName()))
+                .collect(Collectors.toList());
+    }
 
 
 

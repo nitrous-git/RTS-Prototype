@@ -2,22 +2,26 @@ package GameObjects;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.geom.Rectangle2D;
+import java.util.List;
 
 import Manager.EnemyUnitManager;
 import Manager.PlayerUnitManager;
+import Unit.AbstractUnit;
 import Util.Camera;
 
 public class Projectile extends Entity{
     String tag = "";
     int ID;
+	List<AbstractUnit> targetableUnits;
     
     // speed in pixels per update 
     private float speed = 2.2f;  
     
     public boolean collided = false;
     
-    public Projectile(float x, float y, int width, int height) {
+    public Projectile(List<AbstractUnit> targetableUnits, float x, float y, int width, int height) {
 		super(x, y, width, height);
+		this.targetableUnits = targetableUnits;
 		initHitbox(x, y, width, height);
 	}
     
@@ -56,30 +60,44 @@ public class Projectile extends Entity{
 	}
     
     public void checkCollisions() {
-		switch (tag) {
-			case "player_projectile":
-				for (int i = 0; i < EnemyUnitManager.unitList.size(); i++) {
-					if (hitbox.intersects(EnemyUnitManager.unitList.get(i).hitbox)) {
-						//System.out.println("COLLIDE");
-						EnemyUnitManager.unitList.get(i).removeHealth(10);
-						collided = true;
-						vel_x = 0;
-						vel_y = 0;
-					}
-				}
-				return;
-			case "enemy_projectile":
-				for (int i = 0; i < PlayerUnitManager.unitList.size(); i++) {
-					if (hitbox.intersects(PlayerUnitManager.unitList.get(i).hitbox)) {
-						//System.out.println("COLLIDE");
-						PlayerUnitManager.unitList.get(i).removeHealth(10);
-						collided = true;
-						vel_x = 0;
-						vel_y = 0;
-					}
-				}
-				return;
+		for (int i = 0; i < targetableUnits.size(); i++) {
+			if (hitbox.intersects(targetableUnits.get(i).hitbox)) {
+				//System.out.println("COLLIDE");
+				//EnemyUnitManager.unitList.get(i).removeHealth(10);
+				targetableUnits.get(i).removeHealth(10);
+				collided = true;
+				vel_x = 0;
+				vel_y = 0;
+			}
 		}
+		//return;
+
+
+//
+//		switch (tag) {
+//			case "player_projectile":
+//				for (int i = 0; i < targetableUnits.size(); i++) {
+//					if (hitbox.intersects(targetableUnits.get(i).hitbox)) {
+//						//System.out.println("COLLIDE");
+//						//EnemyUnitManager.unitList.get(i).removeHealth(10);
+//						collided = true;
+//						vel_x = 0;
+//						vel_y = 0;
+//					}
+//				}
+//				return;
+//			case "enemy_projectile":
+//				for (int i = 0; i < PlayerUnitManager.unitList.size(); i++) {
+//					if (hitbox.intersects(PlayerUnitManager.unitList.get(i).hitbox)) {
+//						//System.out.println("COLLIDE");
+//						//PlayerUnitManager.unitList.get(i).removeHealth(10);
+//						collided = true;
+//						vel_x = 0;
+//						vel_y = 0;
+//					}
+//				}
+//				return;
+//		}
 	}
     
     public void setVelocity(float enemyX, float enemyY) {

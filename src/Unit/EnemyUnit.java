@@ -65,39 +65,39 @@ public class EnemyUnit extends AbstractUnit {
 
 	@Override
     public void updateUnitSensing() {
-		List<AbstractUnit> pul = PlayerUnitManager.unitList;
-		//System.out.println(pul.size());
-		float max = (float) Double.MAX_VALUE;
-		
-		targetPlayerUnit = null;
-		
-		// find the closest player
-		for (int i = 0; i < pul.size(); i++) {
-			if ( visionbox.intersects(pul.get(i).getHitbox()) ) {
-				float distance = calculateDistance(pul.get(i).getX(), pul.get(i).getY());
-				
-				if (distance < max) {
-					// set closest to target player
-					targetPlayerUnit = pul.get(i);
-					max = distance;
-				}
-			}
-		} 
+//		List<AbstractUnit> pul = PlayerUnitManager.unitList;
+//		//System.out.println(pul.size());
+//		float max = (float) Double.MAX_VALUE;
+//
+//		targetPlayerUnit = null;
+//
+//		// find the closest player
+//		for (int i = 0; i < pul.size(); i++) {
+//			if ( visionbox.intersects(pul.get(i).getHitbox()) ) {
+//				float distance = calculateDistance(pul.get(i).getX(), pul.get(i).getY());
+//
+//				if (distance < max) {
+//					// set closest to target player
+//					targetPlayerUnit = pul.get(i);
+//					max = distance;
+//				}
+//			}
+//		}
 		
 	}
     
     
 	public void automateShooting(String tag) {
-		if (targetPlayerUnit != null) {
-			shootingTimer++;
-			if (shootingTimer%25==0) {
-				//System.out.println("SHOOT");
-				Projectile p = new Projectile(this.x, this.y, 8, 8);
-				p.setVelocity(targetPlayerUnit.x, targetPlayerUnit.y);
-				p.setTag(tag);
-				projectileList.add(p);
-			}
-		}
+//		if (targetPlayerUnit != null) {
+//			shootingTimer++;
+//			if (shootingTimer%25==0) {
+//				//System.out.println("SHOOT");
+//				Projectile p = new Projectile(this.x, this.y, 8, 8);
+//				p.setVelocity(targetPlayerUnit.x, targetPlayerUnit.y);
+//				p.setTag(tag);
+//				projectileList.add(p);
+//			}
+//		}
 	}
 	
 	public void checkForNewTarget() {

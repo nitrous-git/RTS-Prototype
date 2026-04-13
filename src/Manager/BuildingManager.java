@@ -264,4 +264,6 @@ public class BuildingManager {
 	}
 
 	public void setOwnerFaction(Faction ownerFaction){ this.ownerFaction = ownerFaction; }
+
+	public GameContext getGameContext(){ return GC; }
 }

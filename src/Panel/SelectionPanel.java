@@ -35,7 +35,7 @@ public class SelectionPanel extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        List<AbstractUnit> sel = PlayerUnitManager.getSelectedUnitList();
+        List<AbstractUnit> sel = GC.constructSelectedUnitList();
         List<ResourceNode> rnl = playerFaction.getResourceManager().getSelectedResourceNodeList();
         IEntity sb = GC.getSelectedBuilding(); //playerFaction.getBuildingManager().getSelectedBuilding();
 

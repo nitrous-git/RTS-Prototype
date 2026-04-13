@@ -69,7 +69,8 @@ public class CommandActionListener implements ActionListener {
 		}
 		if (source == CP.stop) {
 			// don't wait, just pause the unit movement
-			List<AbstractUnit> units = PlayerUnitManager.getSelectedUnitList();
+			//List<AbstractUnit> units = PlayerUnitManager.getSelectedUnitList();
+			List<AbstractUnit> units = playerFaction.getUnitManager().getGC().constructSelectedUnitList();
 			// (we don't need to check is isSelected, clean it up later...)
 			for (AbstractUnit unit : units) {
 				if (unit instanceof IControllable controllable && controllable.isSelected()) {

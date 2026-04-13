@@ -6,6 +6,7 @@ import java.util.List;
 
 import Faction.Faction;
 import Unit.AbstractUnit;
+import Unit.CombatUnit;
 import Unit.EnemyUnit;
 import Panel.GamePanel;
 import Util.Camera;
@@ -14,13 +15,14 @@ import Util.TileMap;
 
 public class EnemyUnitManager extends UnitManager {
 
-    public static List<AbstractUnit> unitList;
+	//public static List<AbstractUnit> unitList;
+	//public List<AbstractUnit> selectedUnitList;
 
 	// Constructor
-	public EnemyUnitManager(TileMap map) {
-		super(map);
+	public EnemyUnitManager(TileMap map, GameContext GC) {
+		super(map, GC);
 		unitList = new ArrayList<AbstractUnit>();
-		buildUnitSquad();
+		//buildUnitSquad();
 	}
 
 	@Override
@@ -32,13 +34,34 @@ public class EnemyUnitManager extends UnitManager {
 
 	@Override
 	public void update() {
-		for (int i = 0; i < unitList.size(); i++) {
-			unitList.get(i).update();
-			if (unitList.get(i).isDead()) {
-				unitList.remove(unitList.get(i));
+//		for (int i = 0; i < unitList.size(); i++) {
+//			unitList.get(i).update();
+//			if (unitList.get(i).isDead()) {
+//				unitList.remove(unitList.get(i));
+//			}
+//		}
+
+		//  2 pass for the update
+		// Read from A -> collect removals into B -> iterate B -> mutate A
+		List<AbstractUnit> deadUnits = new ArrayList<>();
+
+		for (AbstractUnit unit : unitList) {
+			unit.update();
+			if (unit.isDead()) {
+				deadUnits.add(unit);
 			}
 		}
+
+		for (AbstractUnit dead : deadUnits) {
+			removeUnit(dead);
+		}
 	}
+
+	public void removeUnit(AbstractUnit unit) {
+		unitList.remove(unit);
+		GC.unregisterUnit(unit);
+	}
+
 
 
 	public void buildUnitSquad() {	
@@ -48,11 +71,12 @@ public class EnemyUnitManager extends UnitManager {
 		  for (int i = 0; i < GamePanel.ROWS; i++) {
 		    for (int j = 0; j < GamePanel.COLS; j++) {
 		        if (map.intArr[i][j] == EnemyUnit.TOKEN) {
-		        	EnemyUnit unit = new EnemyUnit(posX, posY, (int)GamePanel.TILE_SIZE, (int)GamePanel.TILE_SIZE);
+		        	CombatUnit unit = new CombatUnit(map, ownerFaction, posX, posY, (int)GamePanel.TILE_SIZE, (int)GamePanel.TILE_SIZE);
 					int index = GamePanel.COLS*i + j;
 					unit.setID(index);
-					unit.setTag("enemy");
-					unitList.add(unit);
+					unit.setTag("Combat");
+					//unitList.add(unit);
+					addUnit(unit);
 		        } 
 		        posX += GamePanel.TILE_SIZE;
 		    }

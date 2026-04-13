@@ -508,7 +508,7 @@ public class WorkerUnit extends AbstractUnit implements IControllable {
 
         //System.out.println("Start : " + start.toString());
         //System.out.println("End : " + end.toString());
-        if (PlayerUnitManager.getSelectedUnitList().size() > 1) {
+        if (ownerFaction.getUnitManager().getGC().constructSelectedUnitList().size() > 1) {
             end = getRandomNearbyPoint(end, 3);
         }
         //System.out.println("End : " + end.toString());

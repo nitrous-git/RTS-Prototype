@@ -2,6 +2,7 @@ package Panel;
 
 import javax.swing.*;
 
+import Manager.GameContext;
 import Unit.AbstractUnit;
 import Unit.EnemyUnit;
 import Manager.EnemyUnitManager;
@@ -18,15 +19,17 @@ public class MinimapPanel extends JPanel {
     private GamePanel GP;
     private TileMap map;
     private Camera camera;
+    private GameContext GC;
 
     private final BufferedImage terrainImg;
     private final int mapRows, mapCols;
     private final float tileSize; // world pixels per tile
 
-    public MinimapPanel(GamePanel GP, TileMap map, Camera camera, int miniWidth, int miniHeight) {
+    public MinimapPanel(GamePanel GP, TileMap map, Camera camera, GameContext GC, int miniWidth, int miniHeight) {
         this.GP = GP;
         this.map = map;
         this.camera = camera;
+        this.GC = GC;
         this.mapRows  = map.row;
         this.mapCols  = map.column;
         this.tileSize = GamePanel.TILE_SIZE;    
@@ -72,22 +75,35 @@ public class MinimapPanel extends JPanel {
         float sx = w / worldW;
         float sy = h / worldH;
         
-        // draw player units
-        g.setColor(Color.BLUE);
-        for (AbstractUnit u : PlayerUnitManager.unitList) {
+//        // draw player units
+//        g.setColor(Color.BLUE);
+//        for (AbstractUnit u : PlayerUnitManager.unitList) {
+//            int px = (int)(u.getX() * sx);
+//            int py = (int)(u.getY() * sy);
+//            g.fillOval(px-2, py-2, 4, 4);
+//        }
+//
+//
+//        // draw enemy units
+//        g.setColor(Color.RED);
+//        for (AbstractUnit e : EnemyUnitManager.unitList) {
+//            int px = (int)(e.getX() * sx);
+//            int py = (int)(e.getY() * sy);
+//            g.fillOval(px-2, py-2, 4, 4);
+//        }
+
+        // draw units
+        for (AbstractUnit u : GC.getAllUnits()) {
+            if (u.getOwnerFaction().getName().equals("Player")){
+                g.setColor(Color.BLUE);
+            }else{
+                g.setColor(Color.RED);
+            }
             int px = (int)(u.getX() * sx);
             int py = (int)(u.getY() * sy);
             g.fillOval(px-2, py-2, 4, 4);
         }
 
-
-        // draw enemy units
-        g.setColor(Color.RED);
-        for (AbstractUnit e : EnemyUnitManager.unitList) {
-            int px = (int)(e.getX() * sx);
-            int py = (int)(e.getY() * sy);
-            g.fillOval(px-2, py-2, 4, 4);
-        }
 
         // draw camera viewport
         int vx = (int)(camera.getX() * sx);

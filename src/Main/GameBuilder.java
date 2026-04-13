@@ -33,9 +33,9 @@ public class GameBuilder {
 		FactionManager FM = new FactionManager();
 
 		PlayerController playerController = new PlayerController();
-		AIController aiController = new AIController(camera);
+		AIController aiController = new AIController(camera); // why would it need camera !? check this later...
 
-		UnitManager PUM = new PlayerUnitManager(map);
+		UnitManager PUM = new PlayerUnitManager(map, GC);
 		BuildingManager PBM = new BuildingManager(map, GC);
 		ResourceManager PRM = new ResourceManager(map, RNR);
 		Faction playerFaction = new Faction("Player", playerController, PUM, PBM, PRM, map);
@@ -44,7 +44,7 @@ public class GameBuilder {
 		PBM.setOwnerFaction(playerFaction);
 		PUM.buildUnitSquad(); // not such a good idea, should be initialized inside UM class
 
-		UnitManager EUM = new EnemyUnitManager(map);
+		UnitManager EUM = new EnemyUnitManager(map, GC);
 		BuildingManager EBM = new BuildingManager(map, GC);
 		ResourceManager ERM = new ResourceManager(map, RNR);
 		Faction aiFaction = new Faction("AI", aiController, EUM, EBM, ERM, map);
@@ -59,7 +59,7 @@ public class GameBuilder {
 
 		// — instantiate the core panels —
 		GamePanel GP = new GamePanel(map, camera, SB, FM, RNR);
-		MinimapPanel MP   = new MinimapPanel(GP, map, camera, 150, 150);
+		MinimapPanel MP   = new MinimapPanel(GP, map, camera, GC, 150, 150);
 		CommandPanel CP   = new CommandPanel(GP, playerFaction);
 		SelectionPanel SP = new SelectionPanel(playerFaction, GC);
 

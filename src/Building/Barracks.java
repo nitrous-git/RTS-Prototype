@@ -71,7 +71,22 @@ public class Barracks extends AbstractBuilding {
         //System.out.printf("Barracks instantiated at location %d %d%n", cellPos.x, cellPos.y);
 
         // compute a rally point if faction has AIController (map must be instantiated)
-        if (ownerFaction.isAI) this.rallyPoint = computeRallyCell();
+        if (ownerFaction.isAI) {
+            this.rallyPoint = PlacementUtil.getPlacementAroundFootprintScoredWithFallback(
+                                                                                        map,
+                                                                                        cellPos,
+                                                                                        WIDTH_TILES,
+                                                                                        HEIGHT_TILES,
+                                                                                        8,
+                                                                                        10,
+                                                                                        null,
+                                                                                        PlacementUtil.PlacementPolicy.OPEN_THEN_CLOSE,
+                                                                                        4,
+                                                                                        10,
+                                                                                        5
+            );
+        }
+        //computeRallyCell();
     }
 
     @Override
@@ -184,7 +199,11 @@ public class Barracks extends AbstractBuilding {
         unit.setID(free.x*free.y); // ID must be the index of spawn (might not be unique... fix this)
         unit.setTag("Combat");
         unit.syncHitbox();
-        PlayerUnitManager.unitList.add(unit);
+        //PlayerUnitManager.unitList.add(unit);      // no... we need to add to ownerFaction unitManager
+        //ownerFaction.getUnitManager().getUnitList().add(unit);
+        //ownerFaction.getUnitManager().getGC().registerUnit(unit);
+        //System.out.println("Added combat unit in faction : " + ownerFaction.getName() + ", list size : " + ownerFaction.getUnitManager().getUnitList().size());
+        ownerFaction.getUnitManager().addUnit(unit);
 
         // now mark it occupied
         map.intArr[free.y][free.x] = CombatUnit.TOKEN;

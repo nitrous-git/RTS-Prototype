@@ -177,7 +177,9 @@ public class CommandCenter extends AbstractBuilding {
         unit.setID(free.x*free.y); // ID must be the index of spawn (might not be unique... fix this)
         unit.setTag("Worker");
         unit.syncHitbox();
-        PlayerUnitManager.unitList.add(unit);
+        //PlayerUnitManager.unitList.add(unit);
+        //ownerFaction.getUnitManager().getUnitList().add(unit);
+        ownerFaction.getUnitManager().addUnit(unit);
 
         // now mark it occupied
         map.intArr[free.y][free.x] = CombatUnit.TOKEN;

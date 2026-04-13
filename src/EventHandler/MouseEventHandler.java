@@ -271,7 +271,7 @@ public class MouseEventHandler implements MouseListener, MouseMotionListener {
     /*
     * Turning each “priority” into a small handler,
     * and then walking them in order until one “claims” the click.
-    * This is just the classic Chain-of-Responsibility pattern.
+    * This is just the classic Chain-of-Responsibility design pattern.
     * used by the mouseDragged(MouseEvent e) mouse event method
     * */
 
@@ -285,13 +285,14 @@ public class MouseEventHandler implements MouseListener, MouseMotionListener {
     private class UnitSelectionHandler implements SelectionHandler {
         @Override
         public boolean handle(SelectionBox sb) {
-            PUM.checkSelection(sb);
-            var units = PlayerUnitManager.getSelectedUnitList();
+            GC.checkSelection(sb);
+            var units = GC.constructSelectedUnitList();
+
             if (!units.isEmpty()) {
                 //playerFaction.getBuildingManager().clearSelectedBuilding();
                 GC.clearSelectedBuilding();
                 playerFaction.getResourceManager().clearSelectedResources();
-                CP.setCommandsForUnit(getFilteredUnitList());
+                CP.setCommandsForUnit(units);
                 return true;
             }
             return false;
@@ -340,9 +341,10 @@ public class MouseEventHandler implements MouseListener, MouseMotionListener {
     }
 
     private List<AbstractUnit> getFilteredUnitList(){
-        return PlayerUnitManager.getSelectedUnitList()
+          //return GC.constructSelectedUnitList();
+        return GC.constructSelectedUnitList()
                 .stream()
-                .filter(u -> u.getOwnerFaction().getName().equals("Player"))
+                .filter(u -> u.getOwnerFaction().getName().equals(playerFaction.getName()))
                 .collect(Collectors.toList());
     }
 

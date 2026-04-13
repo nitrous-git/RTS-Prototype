@@ -15,16 +15,16 @@ import Util.*;
 
 public class PlayerUnitManager extends UnitManager {
 
-    public static List<AbstractUnit> unitList;
-    public static List<AbstractUnit> selectedUnitList;
+    //public static List<AbstractUnit> unitList;
+    //public static List<AbstractUnit> selectedUnitList;
     public static AbstractUnit quickSelection;
 
 	public List<Tile> tempTileList;
 	public List<Vector2Int> tempTileIndex;
 
 	// Constructor
-	public PlayerUnitManager(TileMap map) {
-        super(map);
+	public PlayerUnitManager(TileMap map, GameContext GC) {
+        super(map, GC);
 
 		unitList = new ArrayList<AbstractUnit>();
 		selectedUnitList = new ArrayList<AbstractUnit>();
@@ -45,13 +45,36 @@ public class PlayerUnitManager extends UnitManager {
 
 	@Override
 	public void update() {
-		for (int i = 0; i < unitList.size(); i++) {
-			unitList.get(i).update();
-			if (unitList.get(i).isDead()) {
-				unitList.remove(unitList.get(i));
+//		for (int i = 0; i < unitList.size(); i++) {
+//			unitList.get(i).update();
+//			if (unitList.get(i).isDead()) {
+//				//unitList.remove(unitList.get(i));
+//				GC.unregisterUnit(unitList.get(i));
+//			}
+//		}
+
+		List<AbstractUnit> deadUnits = new ArrayList<>();
+
+		for (AbstractUnit unit : unitList) {
+			unit.update();
+			if (unit.isDead()) {
+				deadUnits.add(unit);
 			}
 		}
+
+		for (AbstractUnit dead : deadUnits) {
+			removeUnit(dead);
+		}
 	}
+
+	public void removeUnit(AbstractUnit unit) {
+		unitList.remove(unit);
+		GC.unregisterUnit(unit);
+
+		Vector2Int cellPos = GamePanel.convertWorldToCell(unit.x, unit.y);
+		map.intArr[cellPos.y][cellPos.x] = 0;
+	}
+
 
 	// Visualize allowed target in tile map overlay
 	public void movementHelper(Vector2Int startPos){
@@ -91,14 +114,16 @@ public class PlayerUnitManager extends UnitManager {
 					int index = GamePanel.COLS*i + j;
 					unit.setID(index);
 					unit.setTag("Combat");
-					unitList.add(unit);
+					//unitList.add(unit);
+					addUnit(unit);
 		        }
 				if (map.intArr[i][j] == WorkerUnit.TOKEN) {
 					WorkerUnit unit = new WorkerUnit(map, ownerFaction, posX, posY, (int)GamePanel.TILE_SIZE, (int)GamePanel.TILE_SIZE);
 					int index = GamePanel.COLS*i + j;
 					unit.setID(index);
 					unit.setTag("Worker");
-					unitList.add(unit);
+					//unitList.add(unit);
+					addUnit(unit);
 				}
 				posX += GamePanel.TILE_SIZE;
 		    }
@@ -107,19 +132,22 @@ public class PlayerUnitManager extends UnitManager {
 		  }
 	}
 
-	// update the unit selected states
-	public void checkSelection(SelectionBox SB) {
-		for (AbstractUnit unit : unitList) {
-			if (unit instanceof IControllable) {
-				IControllable cu = (IControllable)unit;
-				boolean unitSelected;
-				// Check if the unit is inside the selection box
-				unitSelected = SB.intersects(unit.hitbox);
-				cu.setSelected(unitSelected);
-			}
-		}
-	}
+//	// update the unit selected states
+//	public void checkSelection(SelectionBox SB) {
+//		for (AbstractUnit unit : unitList) {
+//			if (unit instanceof IControllable) {
+//				IControllable cu = (IControllable)unit;
+//				boolean unitSelected;
+//				// Check if the unit is inside the selection box
+//				unitSelected = SB.intersects(unit.hitbox);
+//				cu.setSelected(unitSelected);
+//
+//				//System.out.println("Unit : " + ((AbstractUnit)cu).getID() + " is selected");
+//			}
+//		}
+//	}
 
+	// This doesn't work right now, but its only used for single Entity selection (Fix later)
 	public void checkQuickBoxSelection(SelectionBox SB){
 		for (AbstractUnit unit : unitList) {
 			if (unit instanceof IControllable) {
@@ -131,18 +159,34 @@ public class PlayerUnitManager extends UnitManager {
 		}
 	}
 
-	public static List<AbstractUnit> getSelectedUnitList() {
-		List<AbstractUnit> su = new ArrayList<>();
-		for (AbstractUnit unit : unitList) {
-			if (unit instanceof IControllable) {
-				IControllable cu = (IControllable)unit;
-				if (cu.isSelected()) {
-					su.add(unit);
-				}
-			}
-		}
-		selectedUnitList = su;
-		return su;
-	}
+//// Replaced by constructSelectedUnitList
+//	public static List<AbstractUnit> getSelectedUnitList() {
+//		List<AbstractUnit> su = new ArrayList<>();
+//		for (AbstractUnit unit : unitList) {
+//			if (unit instanceof IControllable) {
+//				IControllable cu = (IControllable)unit;
+//				if (cu.isSelected()) {
+//					su.add(unit);
+//				}
+//			}
+//		}
+//		selectedUnitList = su;
+//		return su;
+//	}
+
+//	@Override
+//	public List<AbstractUnit> constructSelectedUnitList() {
+//		List<AbstractUnit> su = new ArrayList<>();
+//		for (AbstractUnit unit : unitList) {
+//			if (unit instanceof IControllable) {
+//				IControllable cu = (IControllable)unit;
+//				if (cu.isSelected()) {
+//					su.add(unit);
+//				}
+//			}
+//		}
+//		selectedUnitList = su;
+//		return su;
+//	}
 
 }

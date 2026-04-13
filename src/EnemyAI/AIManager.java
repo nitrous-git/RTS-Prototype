@@ -3,6 +3,7 @@ package EnemyAI;
 import Building.BuildingType;
 import EnemyAI.State.BuildState;
 import EnemyAI.State.TrainState;
+import EnemyAI.State.WaveAttackState;
 import Faction.Faction;
 import Unit.UnitType;
 import Util.TileMap;
@@ -25,7 +26,7 @@ public class AIManager {
         aiStateContext = new AIStateContext();
         this.startTime = System.currentTimeMillis();
         this.map = aiFaction.getMap();
-        scheduleActions();
+        scheduleActions();   // Comment this line out for debug
     }
 
     public void update() {
@@ -85,12 +86,15 @@ public class AIManager {
         //System.out.println("currentState NAME : " + currentState.name);
         //System.out.println("currentState timestamp : " + currentState.timestamp);
 
-        aiStateContext.setTrainUnitContext(10f*timeFactor, UnitType.COMBAT);   //40
+        aiStateContext.setTrainUnitContext(10f*timeFactor, UnitType.COMBAT); // 40
         stateQueue.add( new TrainState(this, aiStateContext, "trainCombatUnit"));
-        aiStateContext.setTrainUnitContext(12f*timeFactor, UnitType.COMBAT); // 42
+        aiStateContext.setTrainUnitContext(11f*timeFactor, UnitType.COMBAT); // 42
         stateQueue.add( new TrainState(this, aiStateContext, "trainCombatUnit"));
-        aiStateContext.setTrainUnitContext(16f*timeFactor, UnitType.COMBAT); // 44
+        aiStateContext.setTrainUnitContext(13f*timeFactor, UnitType.COMBAT); // 44
         stateQueue.add( new TrainState(this, aiStateContext, "trainCombatUnit"));
+
+        aiStateContext.setWaveAttackContext(35f*timeFactor, aiFaction.getBuildingManager().getGameContext(), 2);  // 25
+        stateQueue.add( new WaveAttackState(this, aiStateContext, "sendWaveAttack"));
     }
 
     public Vector2Int findNearbyBuildLocation(Vector2Int seed, int w, int h, int padding) {
