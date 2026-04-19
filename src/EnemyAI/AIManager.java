@@ -93,8 +93,9 @@ public class AIManager {
         aiStateContext.setTrainUnitContext(13f*timeFactor, UnitType.COMBAT); // 44
         stateQueue.add( new TrainState(this, aiStateContext, "trainCombatUnit"));
 
-        aiStateContext.setWaveAttackContext(35f*timeFactor, aiFaction.getBuildingManager().getGameContext(), 2);  // 25
+        aiStateContext.setWaveAttackContext(15f*timeFactor, aiFaction.getBuildingManager().getGameContext(), 2);  // 25
         stateQueue.add( new WaveAttackState(this, aiStateContext, "sendWaveAttack"));
+
     }
 
     public Vector2Int findNearbyBuildLocation(Vector2Int seed, int w, int h, int padding) {

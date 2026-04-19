@@ -1,5 +1,6 @@
 package GameObjects;
 import java.awt.*;
+import java.awt.geom.Rectangle2D;
 
 import Util.Camera;
 /**
@@ -26,4 +27,5 @@ public interface IEntity {
 	public int getID();
 	public void setTag(String tag);
 	public void setID(int ID);
+	public Rectangle2D.Float getHitbox();
 }

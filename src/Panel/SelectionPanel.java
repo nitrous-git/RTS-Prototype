@@ -39,7 +39,7 @@ public class SelectionPanel extends JPanel {
         List<ResourceNode> rnl = playerFaction.getResourceManager().getSelectedResourceNodeList();
         IEntity sb = GC.getSelectedBuilding(); //playerFaction.getBuildingManager().getSelectedBuilding();
 
-        g.setColor(Color.BLACK);
+        g.setColor(Color.LIGHT_GRAY);
         int y = 20;
 
         if (sel.isEmpty() && sb == null && rnl.isEmpty()) {

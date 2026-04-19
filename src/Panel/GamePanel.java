@@ -10,8 +10,8 @@ import java.awt.*;
 public class GamePanel extends JPanel {
 
     // window
-    public final static int WIDTH = 1000;
-    public final static int HEIGHT = 600;
+    public final static int WIDTH = 1080;
+    public final static int HEIGHT = 620;
     public final static float SCALE = 1.0f;
     
     // game grid

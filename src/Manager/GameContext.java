@@ -1,6 +1,7 @@
 package Manager;
 
 import Building.AbstractBuilding;
+import GameObjects.ITargetable;
 import Unit.AbstractUnit;
 import Unit.IControllable;
 import Util.SelectionBox;
@@ -15,6 +16,7 @@ public class GameContext {
     private List<AbstractUnit> allUnits = new ArrayList<>();
     private AbstractBuilding selectedBuilding;
     private List<AbstractUnit> selectedUnits;
+    private final List<ITargetable> allTargetables = new ArrayList<>();
 
     // Constructor
     public GameContext() {}
@@ -22,20 +24,24 @@ public class GameContext {
     // Helpers && Utilities //
     public void registerUnit(AbstractUnit u) {
         allUnits.add(u);
+        allTargetables.add(u);
         //System.out.println("AllUnits Size : " + allUnits.size() + " added : " + u.getOwnerFaction().getName());
     }
 
     public void unregisterUnit(AbstractUnit u) {
         allUnits.remove(u);
-        System.out.println("AllUnits Size : " + allUnits.size() + " removed : " + u.getOwnerFaction().getName());
+        allTargetables.remove(u);
+        //System.out.println("AllUnits Size : " + allUnits.size() + " removed : " + u.getOwnerFaction().getName());
     }
 
     public void registerBuilding(AbstractBuilding b) {
         allBuildings.add(b);
+        allTargetables.add(b);
     }
 
     public void unregisterBuilding(AbstractBuilding b) {
         allBuildings.remove(b);
+        allTargetables.remove(b);
     }
 
     // Building Selection logic //
@@ -119,6 +125,10 @@ public class GameContext {
 
     public List<AbstractUnit> getAllUnits() {
         return allUnits;
+    }
+
+    public List<ITargetable> getAllTargetables() {
+        return allTargetables;
     }
 
 }

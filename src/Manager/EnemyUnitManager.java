@@ -4,7 +4,6 @@ import java.awt.Graphics;
 import java.util.ArrayList;
 import java.util.List;
 
-import Faction.Faction;
 import Unit.AbstractUnit;
 import Unit.CombatUnit;
 import Unit.EnemyUnit;
@@ -47,7 +46,7 @@ public class EnemyUnitManager extends UnitManager {
 
 		for (AbstractUnit unit : unitList) {
 			unit.update();
-			if (unit.isDead()) {
+			if (unit.isDestroyed()) {
 				deadUnits.add(unit);
 			}
 		}

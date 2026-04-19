@@ -16,6 +16,7 @@ import Panel.GamePanel;
 import Building.BuildingType;
 import Resource.Cost;
 import Resource.ResourceType;
+import Unit.AbstractUnit;
 import Util.*;
 
 public class BuildingManager {
@@ -54,14 +55,44 @@ public class BuildingManager {
 	}
 	
 	public void update() {
-		for (int i = 0; i < buildingList.size(); i++) {
-			buildingList.get(i).update();
-			if (buildingList.get(i).isDestroyed()) {
-				buildingList.remove(buildingList.get(i));
+//		for (int i = 0; i < buildingList.size(); i++) {
+//			buildingList.get(i).update();
+//			if (buildingList.get(i).isDestroyed()) {
+//				buildingList.remove(buildingList.get(i));
+//			}
+//		}
+
+		List<AbstractBuilding> destroyedBuildings = new ArrayList<>();
+
+		for (AbstractBuilding building : buildingList) {
+			building.update();
+			if (building.isDestroyed()) {
+				destroyedBuildings.add(building);
 			}
 		}
-		//handleCollisions();
+
+		for (AbstractBuilding building : destroyedBuildings) {
+			removeBuilding(building);
+		}
 	}
+
+	public void removeBuilding(AbstractBuilding building) {
+		buildingList.remove(building);
+		GC.unregisterBuilding(building);
+
+		Vector2Int cellPos = GamePanel.convertWorldToCell(building.x, building.y);
+		int building_width = (int)(building.getWidth()/GamePanel.TILE_SIZE);
+		int building_height = (int)(building.getHeight()/GamePanel.TILE_SIZE);
+		//System.out.println("building size is : " + building_width + "X" + building_height );
+
+		for (int i = cellPos.y; i < cellPos.y+building_height; i++) {
+			for (int j = cellPos.x; j < cellPos.x+building_width; j++) {
+				map.intArr[i][j] = 0;
+				map.tileArr[i][j] = null;
+			}
+		}
+	}
+
 
 	/**
 	 * Construct a building
@@ -107,8 +138,7 @@ public class BuildingManager {
     		Barracks barracks = new Barracks(map, ownerFaction, startf.x, startf.y);
     		barracks.setTag("Barracks");
     		barracks.setID(startPos.x*startPos.y); // ID is the index of start point inside the grid
-    		buildingList.add( barracks );
-			GC.registerBuilding( barracks );
+			addBuilding(barracks);
 		}
     }
 
@@ -119,8 +149,7 @@ public class BuildingManager {
 			SupplyDepot supplyDepot = new SupplyDepot(map, ownerFaction, startf.x, startf.y);
 			supplyDepot.setTag("SupplyDepot");
 			supplyDepot.setID(startPos.x*startPos.y); // ID is the index of start point inside the grid
-			buildingList.add( supplyDepot );
-			GC.registerBuilding( supplyDepot );
+			addBuilding(supplyDepot);
 		}
 	}
 
@@ -131,10 +160,16 @@ public class BuildingManager {
 			CommandCenter commandCenter = new CommandCenter(map, ownerFaction, this, startf.x, startf.y);
 			commandCenter.setTag("CommandCenter");
 			commandCenter.setID(startPos.x*startPos.y); // ID is the index of start point inside the grid
-			buildingList.add( commandCenter );
-			GC.registerBuilding( commandCenter );
+			addBuilding(commandCenter);
 		}
 	}
+
+	public void addBuilding(AbstractBuilding building) {
+		buildingList.add(building);
+		GC.registerBuilding(building);
+	}
+
+
 
 
 	public boolean isValidPlacement(Vector2Int startPos, int tileWidth, int tileHeight) {	

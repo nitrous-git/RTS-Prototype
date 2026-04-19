@@ -21,7 +21,7 @@ public class TileMap {
     BufferedReader br;
     int c = 0;
     // by default is 40x40
-    public int row = 70;          
+    public int row = 69;
     public int column = 155;          
     public char[][] charArr = new char[row][column];
     public int[][] intArr = new int[row][column];

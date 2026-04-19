@@ -4,7 +4,6 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import Faction.Faction;
 import GameObjects.*;
 import Panel.GamePanel;
 import Unit.AbstractUnit;
@@ -57,7 +56,7 @@ public class PlayerUnitManager extends UnitManager {
 
 		for (AbstractUnit unit : unitList) {
 			unit.update();
-			if (unit.isDead()) {
+			if (unit.isDestroyed()) {
 				deadUnits.add(unit);
 			}
 		}

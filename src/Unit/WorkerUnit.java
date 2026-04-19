@@ -6,9 +6,7 @@ import Building.CommandCenter;
 import Command.CommandContext;
 import Command.CommandType;
 import Faction.Faction;
-import Manager.BuildingManager;
-import Manager.PlayerUnitManager;
-import Manager.ResourceManager;
+import GameObjects.ITargetable;
 import Panel.GamePanel;
 import Pathfind.Pathfinder;
 import Resource.*;
@@ -21,7 +19,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class WorkerUnit extends AbstractUnit implements IControllable {
+public class WorkerUnit extends AbstractUnit {
 
     /// Declarations
     protected CommandType currentCommand;
@@ -88,7 +86,7 @@ public class WorkerUnit extends AbstractUnit implements IControllable {
 
     @Override
     public void draw(Graphics g, Camera camera) {
-        if (camera.captures(this) && !isDead()) {
+        if (camera.captures(this) && !isDestroyed()) {
 
             // draw a highlight if selected
             if (selected) {

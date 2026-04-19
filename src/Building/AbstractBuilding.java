@@ -7,12 +7,13 @@ import java.util.Queue;
 
 import Faction.Faction;
 import GameObjects.Entity;
+import GameObjects.ITargetable;
 import Unit.AbstractUnit;
 
 /**
  * Base class for all buildings in the game.
  */
-public class AbstractBuilding extends Entity{
+public class AbstractBuilding extends Entity implements ITargetable {
 
     Rectangle2D.Float healthBar;
     float maxHealth = 100;
@@ -44,10 +45,10 @@ public class AbstractBuilding extends Entity{
 	
 	private void initHitbox(float x, float y, int width, int height) {
 		// Body hitbox
-		hitbox = new Rectangle2D.Float(x,  y, 0.9f*width, 0.9f*height);
+		hitbox = new Rectangle2D.Float(x, y,0.9f*width,0.9f*height);
 
 		// init hp bar here because... why not ...
-		healthBar = new Rectangle2D.Float(x-(width/2),  y-1.2f*(height/2), 2f*width, 0.3f*height);
+		healthBar = new Rectangle2D.Float(x-(width/2),y-1.2f*(height/2),2f*width,0.3f*height);
 	}
 
     public void update(){ }
@@ -64,17 +65,12 @@ public class AbstractBuilding extends Entity{
         healthBar.y = y-1.2f*(height/2);
     }
 
-
     /* --- Getter & Setter --- */
 
     public boolean isDestroyed() {
 		return currentHealth <= 0;
 	}
-	
-    public Rectangle.Float getHitbox() {
-		return hitbox;
-	}
-	
+
     public void setMaxHealth(float maxHealth) {
 		this.maxHealth = maxHealth;
 	}

@@ -1,24 +1,23 @@
 package Unit;
 import java.awt.Color;
 import java.awt.Graphics;
-import java.sql.DatabaseMetaData;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
+import Building.AbstractBuilding;
 import Command.CommandContext;
 import Command.CommandType;
 import Faction.Faction;
+import GameObjects.ITargetable;
 import GameObjects.Projectile;
 import Panel.GamePanel;
-import Manager.EnemyUnitManager;
-import Manager.PlayerUnitManager;
 import Pathfind.Pathfinder;
 import Unit.StatePackage.*;
 import Util.*;
 
-public class CombatUnit extends AbstractUnit implements IControllable {
+public class CombatUnit extends AbstractUnit {
 
     protected CommandType currentCommand = CommandType.IDLE;
     protected CommandContext ctx;
@@ -27,10 +26,8 @@ public class CombatUnit extends AbstractUnit implements IControllable {
     private boolean isMoving;
     private float speed = 1.8f;  
     
-	AbstractUnit targetEnemyUnit;
-	
-	//String[] states =  new String[] { "IDL", "MVG", "ATK" };
-	//String currentState = states[0];
+    private ITargetable currentTarget;
+
     private IUnitState<CombatUnit> currentState;
 	
 	Pathfinder pf;
@@ -70,7 +67,7 @@ public class CombatUnit extends AbstractUnit implements IControllable {
 
     @Override
     public void draw(Graphics g, Camera camera) {
-        if (camera.captures(this) && !isDead()) {
+        if (camera.captures(this) && !isDestroyed()) {
         	
 		    // draw a highlight if selected
 	        if (selected) {
@@ -402,64 +399,87 @@ public class CombatUnit extends AbstractUnit implements IControllable {
     }
 
     /**
-     * UnitSensing And Shooting
+     * ITargetable Sensing
      */
+
     @Override
-	public void updateUnitSensing() {
-		List<AbstractUnit> eul = getFilteredAnyOtherFactionUnitList(); //EnemyUnitManager.unitList; bad static call (old)
-        if (eul == null || eul.isEmpty()){
-            targetEnemyUnit = null;
-            return;
+    public void updateSensing() {
+        currentTarget = null;
+        float minDistance = Float.MAX_VALUE;
+
+        for (ITargetable target : ownerFaction.getUnitManager().getGC().getAllTargetables()) {
+            if (target == this) continue;
+            if (target.getOwnerFaction() == ownerFaction) continue;
+            if (target.isDestroyed()) continue;
+            if (!visionbox.intersects(target.getHitbox())){
+                continue;
+            }
+
+            float distance = calculateDistance(target.getX(), target.getY());
+            if (distance < minDistance) {
+                minDistance = distance;
+                currentTarget = target;
+            }
         }
 
-		targetEnemyUnit = null;
-        float max = (float) Double.MAX_VALUE;
-
-		// find the closest enemy
-		for (int i = 0; i < eul.size(); i++) {
-			if ( visionbox.intersects(eul.get(i).getHitbox()) ) {
-                //System.out.println("eul size on runtime : " + eul.size() + " for unit : "+  ownerFaction.getName());
-				float distance = calculateDistance(eul.get(i).getX(), eul.get(i).getY());
-				
-				if (distance < max) {
-					// set closest to target enemy
-					targetEnemyUnit = eul.get(i);
-                    //System.out.println("targetEnemyUnit : " + targetEnemyUnit.getOwnerFaction().getName());
-					max = distance;
-				}
-
-			}
-		} 
-		
-		// check for automate shoot
-		if (targetEnemyUnit != null) {
-			//currentState = states[2]; // to ATK state
+        if (currentTarget != null) {
+            //System.out.println("Current target is : "+ currentTarget);
             issueCommand(CommandType.ATTACK, null);
-			//System.out.println(targetEnemyUnit.toString());
-		}
-	}
+        }
+    }
 
-	public void automateShooting() {
-		if (targetEnemyUnit != null) {
-			shootingTimer++;
-			if (shootingTimer%25==0) {
-				//System.out.println("SHOOT");
-				Projectile p = new Projectile(getFilteredAnyOtherFactionUnitList(), this.x, this.y, 8, 8);
-				p.setVelocity(targetEnemyUnit.x, targetEnemyUnit.y);
-				p.setTag("player_projectile");
-				projectileList.add(p);
-			}
-		}
-	}
+//	public void automateShooting() {
+//		if (targetEnemyUnit != null) {
+//			shootingTimer++;
+//			if (shootingTimer%25==0) {
+//				//System.out.println("SHOOT");
+//				Projectile p = new Projectile(getFilteredAnyOtherFactionUnitList(), this.x, this.y, 8, 8);
+//				p.setVelocity(targetEnemyUnit.x, targetEnemyUnit.y);
+//				p.setTag("player_projectile");
+//				projectileList.add(p);
+//			}
+//		}
+//	}
+
+    public void automateShooting() {
+        if (currentTarget != null) {
+            shootingTimer++;
+            if (shootingTimer % 25 == 0) {
+                Projectile p = new Projectile(getFilteredAnyOtherITargetableList(), this.x, this.y, 8, 8);
+                p.setVelocity(currentTarget.getX(), currentTarget.getY());
+                p.setTag("player_projectile");
+                projectileList.add(p);
+            }
+        }
+    }
 	
-	public void checkForNewTarget() {
-		if (targetEnemyUnit == null || targetEnemyUnit.isDead()) {
-			updateUnitSensing();
-		}
-	}
+//	public void checkForNewTarget() {
+//		if (targetEnemyUnit == null || targetEnemyUnit.isDestroyed()) {
+//			updateUnitSensing();
+//		}
+//	}
+
+    public void checkForNewTarget() {
+        if (currentTarget == null || currentTarget.isDestroyed()) {
+            updateSensing();
+        }
+
+//        if (!visionbox.intersects(currentTarget.getHitbox())) {
+//            currentTarget = null;
+//            issueCommand(CommandType.IDLE, null);
+//            updateUnitSensing();
+//        }
+    }
 
     private List<AbstractUnit> getFilteredAnyOtherFactionUnitList(){
         return ownerFaction.getUnitManager().getGC().getAllUnits()
+                .stream()
+                .filter(u -> !u.getOwnerFaction().getName().equals(ownerFaction.getName()))
+                .collect(Collectors.toList());
+    }
+
+    private List<ITargetable> getFilteredAnyOtherITargetableList(){
+        return ownerFaction.getUnitManager().getGC().getAllTargetables()
                 .stream()
                 .filter(u -> !u.getOwnerFaction().getName().equals(ownerFaction.getName()))
                 .collect(Collectors.toList());

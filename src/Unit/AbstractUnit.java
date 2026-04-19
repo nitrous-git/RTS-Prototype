@@ -1,6 +1,7 @@
 package Unit;
 import Faction.Faction;
 import GameObjects.Entity;
+import GameObjects.ITargetable;
 import GameObjects.Projectile;
 import Util.Camera;
 
@@ -10,7 +11,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class AbstractUnit extends Entity {
+public abstract class AbstractUnit extends Entity implements IControllable, ITargetable {
 
 	protected Faction ownerFaction;
 
@@ -63,6 +64,8 @@ public abstract class AbstractUnit extends Entity {
 
 	public void updateUnitSensing(){ };
 
+	public void updateSensing(){ };
+
 	public float calculateDistance(float target_x, float target_y) {
 		float dx = target_x - this.x;
 		float dy = target_y - this.y;
@@ -80,17 +83,13 @@ public abstract class AbstractUnit extends Entity {
 		healthBar.width = (float)(currentHealth/maxHealth)*2f*width;
 	}
     
-    public boolean isDead() {
+    public boolean isDestroyed() {
 		return currentHealth <= 0;
 	}
     
     // Getters/Setters 
     // --------------------------------------------
 
-	public Rectangle.Float getHitbox() {
-		return hitbox;
-	}
-    
     public void setMaxHealth(float maxHealth) {
 		this.maxHealth = maxHealth;
 	}

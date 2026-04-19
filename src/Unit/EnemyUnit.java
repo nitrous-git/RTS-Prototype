@@ -1,10 +1,10 @@
 package Unit;
 import java.awt.Color;
 import java.awt.Graphics;
-import java.util.List;
 
-import GameObjects.Projectile;
-import Manager.PlayerUnitManager;
+import Command.CommandContext;
+import Command.CommandType;
+import GameObjects.ITargetable;
 import Util.Camera;
 import Util.GameColors;
 
@@ -19,7 +19,7 @@ public class EnemyUnit extends AbstractUnit {
 
     @Override
     public void draw(Graphics g, Camera camera) {
-        if (camera.captures(this) && !isDead()) {
+        if (camera.captures(this) && !isDestroyed()) {
 	        g.setColor(GameColors.UNIT_ENEMY_COMBAT);
 			g.fillOval( (int)((x - camera.getX()) * camera.scaleX),
 						(int)((y - camera.getY()) * camera.scaleY),
@@ -101,7 +101,7 @@ public class EnemyUnit extends AbstractUnit {
 	}
 	
 	public void checkForNewTarget() {
-		if (targetPlayerUnit == null || targetPlayerUnit.isDead()) {
+		if (targetPlayerUnit == null || targetPlayerUnit.isDestroyed()) {
 			updateUnitSensing();
 		}
 	}
@@ -111,5 +111,20 @@ public class EnemyUnit extends AbstractUnit {
     @Override
     public String toString() {
     	return "EU : " + tag +" "+ ID;
-	}  
+	}
+
+	@Override
+	public boolean isSelected() {
+		return false;
+	}
+
+	@Override
+	public void setSelected(boolean selected) {
+
+	}
+
+	@Override
+	public void issueCommand(CommandType command, CommandContext ctx) {
+
+	}
 }

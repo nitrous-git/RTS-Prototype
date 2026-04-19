@@ -17,7 +17,7 @@ public class Entity implements IEntity {
     public float vel_y;
     public String tag = "";
     public int ID;
-    // unit collision box
+    // Collision box
     public Rectangle2D.Float hitbox;
 
     // ------- constructor -------- //
@@ -130,6 +130,8 @@ public class Entity implements IEntity {
 		this.ID = ID;
 	}
 
-
-
+    @Override
+    public Rectangle2D.Float getHitbox() {
+        return hitbox;
+    }
 }

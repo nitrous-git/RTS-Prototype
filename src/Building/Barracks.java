@@ -8,6 +8,7 @@ import java.util.Queue;
 import Command.CommandContext;
 import Command.CommandType;
 import Faction.Faction;
+import GameObjects.ITargetable;
 import Resource.Cost;
 import Resource.ResourceType;
 import Unit.UnitType;
@@ -199,9 +200,6 @@ public class Barracks extends AbstractBuilding {
         unit.setID(free.x*free.y); // ID must be the index of spawn (might not be unique... fix this)
         unit.setTag("Combat");
         unit.syncHitbox();
-        //PlayerUnitManager.unitList.add(unit);      // no... we need to add to ownerFaction unitManager
-        //ownerFaction.getUnitManager().getUnitList().add(unit);
-        //ownerFaction.getUnitManager().getGC().registerUnit(unit);
         //System.out.println("Added combat unit in faction : " + ownerFaction.getName() + ", list size : " + ownerFaction.getUnitManager().getUnitList().size());
         ownerFaction.getUnitManager().addUnit(unit);
 

@@ -16,7 +16,7 @@ public class IdleState<U extends AbstractUnit> implements IUnitState<U> {
 
     @Override
     public void update(U unit) {
-        unit.updateUnitSensing();
+        unit.updateSensing();
     }
 
     @Override

@@ -12,16 +12,16 @@ import Util.Camera;
 public class Projectile extends Entity{
     String tag = "";
     int ID;
-	List<AbstractUnit> targetableUnits;
+	List<ITargetable> targets;
     
     // speed in pixels per update 
     private float speed = 2.2f;  
     
     public boolean collided = false;
     
-    public Projectile(List<AbstractUnit> targetableUnits, float x, float y, int width, int height) {
+    public Projectile(List<ITargetable> targets, float x, float y, int width, int height) {
 		super(x, y, width, height);
-		this.targetableUnits = targetableUnits;
+		this.targets = targets;
 		initHitbox(x, y, width, height);
 	}
     
@@ -60,11 +60,11 @@ public class Projectile extends Entity{
 	}
     
     public void checkCollisions() {
-		for (int i = 0; i < targetableUnits.size(); i++) {
-			if (hitbox.intersects(targetableUnits.get(i).hitbox)) {
+		for (int i = 0; i < targets.size(); i++) {
+			if (hitbox.intersects(targets.get(i).getHitbox())) {
 				//System.out.println("COLLIDE");
 				//EnemyUnitManager.unitList.get(i).removeHealth(10);
-				targetableUnits.get(i).removeHealth(10);
+				targets.get(i).removeHealth(10);
 				collided = true;
 				vel_x = 0;
 				vel_y = 0;

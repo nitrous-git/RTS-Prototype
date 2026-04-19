@@ -1,13 +1,8 @@
 package Main;
 
-import java.awt.BorderLayout;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+import java.awt.*;
 
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.UIManager;
+import javax.swing.*;
 import javax.swing.border.TitledBorder;
 
 import Panel.CommandPanel;
@@ -22,7 +17,6 @@ public class GameFrame extends JFrame  {
     private final CommandPanel     commandPanel;
     private final SelectionPanel   selectionPanel;
 
-    //GamePanel gamePanel = new GamePanel();
     public JPanel gameContainer = new JPanel();
     public JPanel frameContainer =  new JPanel();
         
@@ -52,10 +46,9 @@ public class GameFrame extends JFrame  {
         setSize(GamePanel.WIDTH, GamePanel.HEIGHT);
         setTitle("RTS Prototype");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLnF();
 
         // ----- GAME ---- //
-        TitledBorder border_Game = new TitledBorder("Level Editor");
+        TitledBorder border_Game = new TitledBorder("Battle Ground");
         border_Game.setTitleJustification(TitledBorder.LEFT);
         border_Game.setTitlePosition(TitledBorder.TOP);
         gameContainer.setBorder(border_Game);
@@ -147,7 +140,9 @@ public class GameFrame extends JFrame  {
         uiBar.add(commandContainer, gbc);
 
         // frame layout: game on top, uiBar at bottom
-        frameContainer.setLayout(new BorderLayout());
+        frameContainer.setLayout(new BorderLayout(0, 8));
+        frameContainer.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+
         frameContainer.add(gameContainer, BorderLayout.CENTER);
         frameContainer.add(uiBar,     BorderLayout.SOUTH);
 
@@ -160,13 +155,4 @@ public class GameFrame extends JFrame  {
         setVisible(true);
     }
 
-
-	// --- SET LOOK AND FEEL --- //
-	public void setLnF() {
-		try {
-			UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
 }
