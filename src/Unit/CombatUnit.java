@@ -158,13 +158,6 @@ public class CombatUnit extends AbstractUnit {
             Vector2 targetPos = GamePanel.convertCellToWorld(nextNode.x, nextNode.y);
             
             // Check if the next cell is blocked
-            /*
-            if (isBlocked(nextNode.x, nextNode.y) && currentIndex > 0) {
-               handleBlockedCell(nextNode);
-               return;
-            }
-            */
-
             Vector2Int blocked = getFirstBlockedNodeAhead(LOOKAHEAD);
             if (blocked != null) {
                 handleBlockedCell(blocked);
@@ -242,37 +235,6 @@ public class CombatUnit extends AbstractUnit {
         isMoving = true; // is moving order is ongoing
     }
 
-    // Handles when the next cell is blocked
-    /*
-    private void handleBlockedCell(Vector2Int blockedNode) {
-        if (!isWaiting) {
-            isWaiting = true;
-            blockStartTime = System.currentTimeMillis();
-        } else {
-            long elapsed = System.currentTimeMillis() - blockStartTime;
-            if (elapsed > 1000) { // 500 ms threshold
-
-                // Recalculate path
-                start = GamePanel.convertWorldToCell(this.x, this.y);
-                path = pf.FindPath(map.intArr, start, end);
-
-                if (path == null || path.isEmpty()) {
-                    stopMovement();
-                    // the path might be blocked indefinitely
-                    // go back to IDL state
-                    issueCommand(CommandType.IDLE, null);
-                    return;
-                }
-
-                // Reset waiting state
-                isWaiting = false;
-                blockStartTime = 0;
-                currentIndex = 0;
-            }
-        }
-    }
-    */
-
     private static final int LOOKAHEAD = 5;
 
     // Returns the first blocked node ahead, or null if all clear
@@ -323,10 +285,6 @@ public class CombatUnit extends AbstractUnit {
             currentIndex = 0;
         }
     }
-
-
-
-
 
 
     // Checks if a cell is blocked
@@ -428,54 +386,41 @@ public class CombatUnit extends AbstractUnit {
         }
     }
 
-//	public void automateShooting() {
-//		if (targetEnemyUnit != null) {
-//			shootingTimer++;
-//			if (shootingTimer%25==0) {
-//				//System.out.println("SHOOT");
-//				Projectile p = new Projectile(getFilteredAnyOtherFactionUnitList(), this.x, this.y, 8, 8);
-//				p.setVelocity(targetEnemyUnit.x, targetEnemyUnit.y);
-//				p.setTag("player_projectile");
-//				projectileList.add(p);
-//			}
-//		}
-//	}
-
     public void automateShooting() {
         if (currentTarget != null) {
             shootingTimer++;
             if (shootingTimer % 25 == 0) {
-                Projectile p = new Projectile(getFilteredAnyOtherITargetableList(), this.x, this.y, 8, 8);
-                p.setVelocity(currentTarget.getX(), currentTarget.getY());
+                Projectile p = new Projectile(getFilteredAnyOtherITargetableList(), this.x, this.y, 7, 7);
+
+                float targetX = currentTarget.getX();
+                float targetY = currentTarget.getY();
+                // Target the center if currentTarget is AbstractBuilding
+                if (currentTarget instanceof AbstractBuilding building) {
+                    targetX = building.getX() + building.getWidth() * 0.5f;
+                    targetY = building.getY() + building.getHeight() * 0.5f;
+                }
+                p.setVelocity(targetX, targetY);
                 p.setTag("player_projectile");
                 projectileList.add(p);
             }
         }
     }
-	
-//	public void checkForNewTarget() {
-//		if (targetEnemyUnit == null || targetEnemyUnit.isDestroyed()) {
-//			updateUnitSensing();
-//		}
-//	}
 
     public void checkForNewTarget() {
+        // Lose target if it died or left vision
         if (currentTarget == null || currentTarget.isDestroyed()) {
             updateSensing();
         }
 
-//        if (!visionbox.intersects(currentTarget.getHitbox())) {
-//            currentTarget = null;
-//            issueCommand(CommandType.IDLE, null);
-//            updateUnitSensing();
-//        }
-    }
+        // Try to reacquire something in vision
+        if (currentTarget == null) {
+            updateSensing();
 
-    private List<AbstractUnit> getFilteredAnyOtherFactionUnitList(){
-        return ownerFaction.getUnitManager().getGC().getAllUnits()
-                .stream()
-                .filter(u -> !u.getOwnerFaction().getName().equals(ownerFaction.getName()))
-                .collect(Collectors.toList());
+            // Still nothing -> leave attack state
+            if (currentTarget == null && currentCommand == CommandType.ATTACK) {
+                issueCommand(CommandType.IDLE, null);
+            }
+        }
     }
 
     private List<ITargetable> getFilteredAnyOtherITargetableList(){
@@ -485,12 +430,18 @@ public class CombatUnit extends AbstractUnit {
                 .collect(Collectors.toList());
     }
 
-
-
     // -----------------------------------
     // Getter & Setter
     public void setSelected(boolean selected) {
         this.selected = selected;
+    }
+
+    public IUnitState<CombatUnit> getCurrentState() {
+        return currentState;
+    }
+
+    public CommandType getCurrentCommand() {
+        return currentCommand;
     }
 
     public boolean isSelected() {

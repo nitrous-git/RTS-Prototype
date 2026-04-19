@@ -7,7 +7,6 @@ import GameObjects.Tile;
 import Panel.GamePanel;
 import Resource.*;
 import Unit.AbstractUnit;
-import Unit.EnemyUnit;
 import Unit.IControllable;
 import Util.Camera;
 import Util.SelectionBox;

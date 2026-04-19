@@ -26,7 +26,7 @@ public class Projectile extends Entity{
 	}
     
     private void initHitbox(float x, float y, int width, int height) {
-		hitbox = new Rectangle2D.Float(x,  y, 0.8f*width, 0.8f*height);
+		hitbox = new Rectangle2D.Float(x,  y, 0.7f*width, 0.7f*height);
 	}
 
 	@Override

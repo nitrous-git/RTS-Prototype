@@ -80,6 +80,10 @@ public class SelectionPanel extends JPanel {
                 y += 20;
                 g.drawString("Capacity : " + wu.carryLoad + "/" + wu.carryCapacity, 10, y);
             }
+            if (u instanceof CombatUnit cu) {
+                y += 20;
+                g.drawString("State : " + cu.getCurrentState(), 10, y);
+            }
         } else {
             if (allSameTag(sel)) {
                 String tag = sel.get(0).getTag();
@@ -159,7 +163,7 @@ public class SelectionPanel extends JPanel {
             g.fillRect(10, y, barW, barH);
             g.setColor(new Color(0.0f, 0.4f, 0.0f));
             g.fillRect(10, y, fillW, barH);
-            g.setColor(Color.BLACK);
+            g.setColor(Color.LIGHT_GRAY);
             g.drawRect(10, y, barW, barH);
             g.drawString(
                     String.format("Completed in: %d%%", Math.round(frac * 100)),

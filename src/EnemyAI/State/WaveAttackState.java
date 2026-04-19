@@ -71,8 +71,6 @@ public class WaveAttackState extends AIState {
             List<AbstractUnit> units = ai.getAiFaction().getUnitManager().getUnitList();
             System.out.println("Units list size : " + units.size() );
 
-
-
             for (int i = 0; i < Math.min(unitAmount, units.size()); i++){
                 //System.out.println("Found unit of Tag : "+units.get(i).getTag() + " is instance " + units.get(i).getClass() );
 

@@ -1,7 +1,7 @@
 package Unit.StatePackage;
 
+import Command.CommandType;
 import Unit.CombatUnit;
-import Util.Camera;
 
 public class AttackState implements IUnitState<CombatUnit> {
 
@@ -15,8 +15,13 @@ public class AttackState implements IUnitState<CombatUnit> {
 
     @Override
     public void update(CombatUnit unit) {
-        unit.automateShooting();
         unit.checkForNewTarget();
+
+        if (unit.getCurrentCommand() != CommandType.ATTACK) {
+            return;
+        }
+
+        unit.automateShooting();
     }
 
     @Override
