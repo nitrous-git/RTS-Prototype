@@ -29,7 +29,6 @@ public final class AppTheme {
             }
 
             applyGlobalTuning();
-
         } catch (Exception ex) {
             ex.printStackTrace();
         }
