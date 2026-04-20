@@ -417,7 +417,7 @@ public class CombatUnit extends AbstractUnit {
         if (currentTarget != null) {
             shootingTimer++;
             if (shootingTimer % 25 == 0) {
-                Projectile p = new Projectile(getFilteredAnyOtherITargetableList(), this.x, this.y, 7, 7);
+                Projectile p = new Projectile(map, getFilteredAnyOtherITargetableList(), this.x, this.y, 7, 7);
 
                 float targetX = currentTarget.getX();
                 float targetY = currentTarget.getY();
@@ -427,7 +427,6 @@ public class CombatUnit extends AbstractUnit {
                     targetY = building.getY() + building.getHeight() * 0.5f;
                 }
                 p.setVelocity(targetX, targetY);
-                p.setTag("player_projectile");
                 projectileList.add(p);
             }
         }

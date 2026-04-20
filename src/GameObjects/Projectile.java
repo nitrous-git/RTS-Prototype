@@ -6,10 +6,14 @@ import java.util.List;
 
 import Manager.EnemyUnitManager;
 import Manager.PlayerUnitManager;
+import Panel.GamePanel;
 import Unit.AbstractUnit;
 import Util.Camera;
+import Util.TileMap;
 
 public class Projectile extends Entity{
+
+	TileMap map;
     String tag = "";
     int ID;
 	List<ITargetable> targets;
@@ -18,10 +22,14 @@ public class Projectile extends Entity{
     private float speed = 2.2f;  
     
     public boolean collided = false;
+
+	private int lifeTicks = 0;
+	private static final int MAX_LIFE_TICKS = 120;
     
-    public Projectile(List<ITargetable> targets, float x, float y, int width, int height) {
+    public Projectile(TileMap map, List<ITargetable> targets, float x, float y, int width, int height) {
 		super(x, y, width, height);
 		this.targets = targets;
+		this.map = map;
 		initHitbox(x, y, width, height);
 	}
     
@@ -38,68 +46,73 @@ public class Projectile extends Entity{
 						(int)((y - camera.getY()) * camera.scaleY),
 						(int)(width * camera.scaleX),
 						(int)(height * camera.scaleY) );
-			
-        	/*
-			g.setColor(Color.RED);
-			g.drawRect( (int)((hitbox.x - camera.getX()) * camera.scaleX),
-					(int)((hitbox.y - camera.getY()) * camera.scaleY),
-					(int)(hitbox.width * camera.scaleX),
-					(int)(hitbox.height * camera.scaleY) );
-			*/
         }
     }
     
     public void update() {
-		checkCollisions();
-		if (!collided) {
-			moveX();
-			moveY();
-			hitbox.x = x;
-			hitbox.y = y;
+		if (collided) return;
+
+		float nextX = x + vel_x;
+		float nextY = y + vel_y;
+
+		if (checkWallCollisions(nextX, nextY)) {
+			collided = true;
+			vel_x = 0;
+			vel_y = 0;
+			return;
 		}
+
+		if (checkUnitCollisions(nextX, nextY)) {
+			collided = true;
+			vel_x = 0;
+			vel_y = 0;
+			return;
+		}
+
+		if (updateLifetime()) {
+			collided = true;
+			vel_x = 0;
+			vel_y = 0;
+			return;
+		}
+
+		moveX();
+		moveY();
+		hitbox.x = x;
+		hitbox.y = y;
 	}
-    
-    public void checkCollisions() {
+
+	private boolean checkUnitCollisions(float nextX, float nextY) {
+		Rectangle2D.Float nextHitbox = new Rectangle2D.Float(nextX, nextY, hitbox.width, hitbox.height);
+
 		for (int i = 0; i < targets.size(); i++) {
-			if (hitbox.intersects(targets.get(i).getHitbox())) {
-				//System.out.println("COLLIDE");
-				//EnemyUnitManager.unitList.get(i).removeHealth(10);
+			if (nextHitbox.intersects(targets.get(i).getHitbox())) {
 				targets.get(i).removeHealth(2);
-				collided = true;
-				vel_x = 0;
-				vel_y = 0;
+				return true;
 			}
 		}
-		//return;
-
-
-//
-//		switch (tag) {
-//			case "player_projectile":
-//				for (int i = 0; i < targetableUnits.size(); i++) {
-//					if (hitbox.intersects(targetableUnits.get(i).hitbox)) {
-//						//System.out.println("COLLIDE");
-//						//EnemyUnitManager.unitList.get(i).removeHealth(10);
-//						collided = true;
-//						vel_x = 0;
-//						vel_y = 0;
-//					}
-//				}
-//				return;
-//			case "enemy_projectile":
-//				for (int i = 0; i < PlayerUnitManager.unitList.size(); i++) {
-//					if (hitbox.intersects(PlayerUnitManager.unitList.get(i).hitbox)) {
-//						//System.out.println("COLLIDE");
-//						//PlayerUnitManager.unitList.get(i).removeHealth(10);
-//						collided = true;
-//						vel_x = 0;
-//						vel_y = 0;
-//					}
-//				}
-//				return;
-//		}
+		return false;
 	}
-    
+
+	private boolean checkWallCollisions(float nextX, float nextY) {
+		float sampleX = nextX + width * 0.5f;
+		float sampleY = nextY + height * 0.5f;
+
+		int cellX = (int)Math.floor(sampleX / GamePanel.TILE_SIZE);
+		int cellY = (int)Math.floor(sampleY / GamePanel.TILE_SIZE);
+
+		if (cellX < 0 || cellY < 0 || cellY >= map.intArr.length || cellX >= map.intArr[0].length) {
+			return true;
+		}
+
+		return map.intArr[cellY][cellX] == TileMap.WALL_TOKEN;
+	}
+
+	private boolean updateLifetime() {
+		lifeTicks++;
+		return lifeTicks >= MAX_LIFE_TICKS;
+	}
+
     public void setVelocity(float enemyX, float enemyY) {
 		
         // Calculate the difference
