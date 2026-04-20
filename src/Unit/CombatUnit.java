@@ -454,4 +454,5 @@ public class CombatUnit extends AbstractUnit {
     public String toString() {
     	return "tag : " + tag +" "+ ID + " currentState : " + currentState + " IsSelected : " + selected;
 	}
+
 }
