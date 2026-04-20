@@ -4,7 +4,6 @@ import java.awt.Graphics;
 
 import Command.CommandContext;
 import Command.CommandType;
-import GameObjects.ITargetable;
 import Util.Camera;
 import Util.GameColors;
 
@@ -27,10 +26,10 @@ public class EnemyUnit extends AbstractUnit {
 						(int)(height * camera.scaleY) );
 			
 			g.setColor(Color.GRAY);
-			g.drawOval( (int)((visionbox.x - camera.getX()) * camera.scaleX),
-						(int)((visionbox.y - camera.getY()) * camera.scaleY),
-						(int)(visionbox.width * camera.scaleX),
-						(int)(visionbox.height * camera.scaleY) );
+			g.drawOval( (int)((visionBox.x - camera.getX()) * camera.scaleX),
+						(int)((visionBox.y - camera.getY()) * camera.scaleY),
+						(int)(visionBox.width * camera.scaleX),
+						(int)(visionBox.height * camera.scaleY) );
 			/*
 			g.drawRect( (int)((hitbox.x - camera.getX()) * camera.scaleX),
 					(int)((hitbox.y - camera.getY()) * camera.scaleY),

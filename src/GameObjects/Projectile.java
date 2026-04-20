@@ -64,7 +64,7 @@ public class Projectile extends Entity{
 			if (hitbox.intersects(targets.get(i).getHitbox())) {
 				//System.out.println("COLLIDE");
 				//EnemyUnitManager.unitList.get(i).removeHealth(10);
-				targets.get(i).removeHealth(10);
+				targets.get(i).removeHealth(2);
 				collided = true;
 				vel_x = 0;
 				vel_y = 0;

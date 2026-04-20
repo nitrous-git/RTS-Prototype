@@ -5,7 +5,6 @@ import GameObjects.ITargetable;
 import GameObjects.Projectile;
 import Util.Camera;
 
-import java.awt.Rectangle;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
@@ -19,7 +18,7 @@ public abstract class AbstractUnit extends Entity implements IControllable, ITar
 	List<Projectile> projectileList = new ArrayList<>();
 	int shootingTimer = 0;
 
-	Ellipse2D.Float visionbox;
+	Ellipse2D.Float visionBox;
 	
     Rectangle2D.Float healthBar;
     float maxHealth = 100;
@@ -27,6 +26,10 @@ public abstract class AbstractUnit extends Entity implements IControllable, ITar
 	public int repairTimer = 0;
 	public int gatherTimer = 0;
 	public int deliverTimer = 0;
+
+	// Used by the CombatUnitAIComponent
+	protected long lastDamageTimeMs = -1L;
+
 
 	public AbstractUnit(float x, float y, int width, int height) {
 		super(x, y, width, height);
@@ -36,7 +39,7 @@ public abstract class AbstractUnit extends Entity implements IControllable, ITar
 	private void initHitbox(float x, float y, int width, int height) {
 		// Body hitbox
 		hitbox = new Rectangle2D.Float(x,  y, 0.9f*width, 0.9f*height);
-		visionbox = new Ellipse2D.Float(x-(8.5f*width),  y-(8.5f*height), 18f*width, 18f*height);
+		visionBox = new Ellipse2D.Float(x-(8.5f*width),  y-(8.5f*height), 18f*width, 18f*height);
 		
 		// init hp bar here because… why not …
 		healthBar = new Rectangle2D.Float(x-(width/2),  y-1.2f*(height/2), 2f*width, 0.3f*height);
@@ -76,6 +79,7 @@ public abstract class AbstractUnit extends Entity implements IControllable, ITar
     public void removeHealth(int damage) {
     	this.currentHealth -= damage;
     	healthBar.width = (float)(currentHealth/maxHealth)*2f*width;
+		this.lastDamageTimeMs = System.currentTimeMillis();
 	}
 
 	public void addHealth(int buff) {
@@ -86,7 +90,21 @@ public abstract class AbstractUnit extends Entity implements IControllable, ITar
     public boolean isDestroyed() {
 		return currentHealth <= 0;
 	}
-    
+
+	// CombatUnit AIComponent helpers
+	// --------------------------------------------
+
+	public boolean wasRecentlyDamaged(long windowMs) {
+		return lastDamageTimeMs > 0 && (System.currentTimeMillis() - lastDamageTimeMs) <= windowMs;
+	}
+
+	public float getHealthRatio() {
+		if (maxHealth <= 0f){
+			return 0f;
+		}
+		return currentHealth / maxHealth;
+	}
+
     // Getters/Setters 
     // --------------------------------------------
 
@@ -105,8 +123,8 @@ public abstract class AbstractUnit extends Entity implements IControllable, ITar
     public void syncHitbox() {
     	hitbox.x = x;
     	hitbox.y = y;
-    	visionbox.x = x-(8.5f*width);
-    	visionbox.y = y-(8.5f*height);
+    	visionBox.x = x-(8.5f*width);
+    	visionBox.y = y-(8.5f*height);
     	healthBar.x = x-(width/2);
     	healthBar.y = y-1.2f*(height/2);
     }

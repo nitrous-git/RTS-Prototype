@@ -14,6 +14,8 @@ import GameObjects.ITargetable;
 import GameObjects.Projectile;
 import Panel.GamePanel;
 import Pathfind.Pathfinder;
+import Unit.AIComponent.CombatUnitAIComponent;
+import Unit.AIComponent.CombatUnitRole;
 import Unit.StatePackage.*;
 import Util.*;
 
@@ -43,6 +45,11 @@ public class CombatUnit extends AbstractUnit {
     private boolean isWaiting = false; // Indicates if the unit is waiting for a block to clear
     Random random = new Random();
 
+    // CombatUnitAIComponent Section
+    private CombatUnitRole role = CombatUnitRole.ATTACKER;
+    private CombatUnitAIComponent aiComponent;
+    private ITargetable preferredTarget;
+
 	// Constructor
     public CombatUnit(TileMap map, Faction ownerFaction, float x, float y, int width, int height) {
     	super(x, y, width, height);
@@ -57,6 +64,12 @@ public class CombatUnit extends AbstractUnit {
         this.ownerFaction = ownerFaction;
     	this.map = map;
     	pf = new Pathfinder();
+
+        preferredTarget = null;
+        // Instantiate CUAIComponent if necessary
+        if (ownerFaction != null && ownerFaction.isAI()) {
+            aiComponent = new CombatUnitAIComponent(this);
+        }
 
     	this.currentNode = GamePanel.convertWorldToCell(x, y);
         this.currentState = new IdleState<CombatUnit>();
@@ -86,10 +99,10 @@ public class CombatUnit extends AbstractUnit {
 						(int)(height * camera.scaleY) );
 			
 			g.setColor(Color.GRAY);
-			g.drawOval( (int)((visionbox.x - camera.getX()) * camera.scaleX),
-						(int)((visionbox.y - camera.getY()) * camera.scaleY),
-						(int)(visionbox.width * camera.scaleX),
-						(int)(visionbox.height * camera.scaleY) );
+			g.drawOval( (int)((visionBox.x - camera.getX()) * camera.scaleX),
+						(int)((visionBox.y - camera.getY()) * camera.scaleY),
+						(int)(visionBox.width * camera.scaleX),
+						(int)(visionBox.height * camera.scaleY) );
 			
 			g.fillRect( (int)((healthBar.x - camera.getX()) * camera.scaleX),
 					(int)((healthBar.y - camera.getY()) * camera.scaleY),
@@ -121,6 +134,10 @@ public class CombatUnit extends AbstractUnit {
     public void update() {
         updateProjectileList();
         currentState.update(this);
+
+        if (aiComponent != null) {
+            aiComponent.update();
+        }
     }
 
     public void setState(IUnitState<CombatUnit> newState) {
@@ -362,14 +379,24 @@ public class CombatUnit extends AbstractUnit {
 
     @Override
     public void updateSensing() {
+        // if the AI has a preferred target, honor it
+        if (preferredTarget != null && !preferredTarget.isDestroyed()
+            && preferredTarget.getOwnerFaction() != ownerFaction && visionBox.intersects(preferredTarget.getHitbox())) {
+            currentTarget = preferredTarget;
+            issueCommand(CommandType.ATTACK, null);
+            return;
+        }
+
+        // fall back to the existing generic scan otherwise
         currentTarget = null;
+        clearPreferredTarget();
         float minDistance = Float.MAX_VALUE;
 
         for (ITargetable target : ownerFaction.getUnitManager().getGC().getAllTargetables()) {
             if (target == this) continue;
             if (target.getOwnerFaction() == ownerFaction) continue;
             if (target.isDestroyed()) continue;
-            if (!visionbox.intersects(target.getHitbox())){
+            if (!visionBox.intersects(target.getHitbox())){
                 continue;
             }
 
@@ -381,7 +408,7 @@ public class CombatUnit extends AbstractUnit {
         }
 
         if (currentTarget != null) {
-            //System.out.println("Current target is : "+ currentTarget);
+            System.out.println("Current target is : "+ currentTarget);
             issueCommand(CommandType.ATTACK, null);
         }
     }
@@ -407,9 +434,11 @@ public class CombatUnit extends AbstractUnit {
     }
 
     public void checkForNewTarget() {
-        // Lose target if it died or left vision
-        if (currentTarget == null || currentTarget.isDestroyed()) {
-            updateSensing();
+        // Invalidate current target if it is gone or out of vision
+        if (currentTarget != null) {
+            if (currentTarget.isDestroyed() || !visionBox.intersects(currentTarget.getHitbox())) {
+                currentTarget = null;
+            }
         }
 
         // Try to reacquire something in vision
@@ -428,6 +457,33 @@ public class CombatUnit extends AbstractUnit {
                 .stream()
                 .filter(u -> !u.getOwnerFaction().getName().equals(ownerFaction.getName()))
                 .collect(Collectors.toList());
+    }
+
+    // ---------------------------------------------
+    // CombatUnitAIComponent helper methods
+
+    public CombatUnitAIComponent getAiComponent() {
+        return aiComponent;
+    }
+
+    public CombatUnitRole getRole() {
+        return role;
+    }
+
+    public void setRole(CombatUnitRole role) {
+        this.role = role;
+    }
+
+    public void setPreferredTarget(ITargetable preferredTarget) {
+        this.preferredTarget = preferredTarget;
+    }
+
+    public void clearPreferredTarget() {
+        this.preferredTarget = null;
+    }
+
+    public ITargetable getPreferredTarget() {
+        return preferredTarget;
     }
 
     // -----------------------------------

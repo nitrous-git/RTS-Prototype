@@ -6,7 +6,6 @@ import Building.CommandCenter;
 import Command.CommandContext;
 import Command.CommandType;
 import Faction.Faction;
-import GameObjects.ITargetable;
 import Panel.GamePanel;
 import Pathfind.Pathfinder;
 import Resource.*;
@@ -105,10 +104,10 @@ public class WorkerUnit extends AbstractUnit {
                     (int)(height * camera.scaleY) );
 
             g.setColor(Color.GRAY);
-            g.drawOval( (int)((visionbox.x - camera.getX()) * camera.scaleX),
-                    (int)((visionbox.y - camera.getY()) * camera.scaleY),
-                    (int)(visionbox.width * camera.scaleX),
-                    (int)(visionbox.height * camera.scaleY) );
+            g.drawOval( (int)((visionBox.x - camera.getX()) * camera.scaleX),
+                    (int)((visionBox.y - camera.getY()) * camera.scaleY),
+                    (int)(visionBox.width * camera.scaleX),
+                    (int)(visionBox.height * camera.scaleY) );
 
             g.fillRect( (int)((healthBar.x - camera.getX()) * camera.scaleX),
                     (int)((healthBar.y - camera.getY()) * camera.scaleY),

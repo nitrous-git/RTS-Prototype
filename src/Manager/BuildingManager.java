@@ -23,7 +23,7 @@ public class BuildingManager {
 
 	public boolean inPlacementMode;
 
-    public List<AbstractBuilding> buildingList;
+	public List<AbstractBuilding> buildingList;
     public AbstractBuilding selectedBuilding; // only one selected building at the time
 	public AbstractBuilding quickSelection;
 	int h, w = 0;
@@ -301,4 +301,8 @@ public class BuildingManager {
 	public void setOwnerFaction(Faction ownerFaction){ this.ownerFaction = ownerFaction; }
 
 	public GameContext getGameContext(){ return GC; }
+
+	public List<AbstractBuilding> getBuildingList() {
+		return buildingList;
+	}
 }

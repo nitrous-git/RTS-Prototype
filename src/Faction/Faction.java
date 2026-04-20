@@ -17,6 +17,7 @@ public class Faction {
     private final UnitManager UM;
     private final FactionController controller;
     private Vector2Int spawnSeed;
+
     public boolean isAI;
 
     public Faction(String name, FactionController controller, UnitManager UM, BuildingManager BM, ResourceManager RM, TileMap map) {
@@ -53,6 +54,10 @@ public class Faction {
 
     public void setSpawnSeed(SpawnSeedRepository SSR, int preferredIndex) {
         this.spawnSeed = SSR.requestSeed(preferredIndex);
+    }
+
+    public boolean isAI() {
+        return isAI;
     }
 
 }
