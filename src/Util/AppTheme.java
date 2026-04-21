@@ -35,7 +35,7 @@ public final class AppTheme {
     }
 
     private static void applyGlobalTuning() {
-        System.setProperty("flatlaf.useWindowDecorations", Boolean.toString(false));
+        //System.setProperty("flatlaf.useWindowDecorations", Boolean.toString(false));
 
         UIManager.put("Component.arc", 8);
         UIManager.put("Button.arc", 2);

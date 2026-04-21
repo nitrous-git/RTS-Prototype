@@ -62,7 +62,7 @@ public class WorkerUnit extends AbstractUnit {
         this.isMoving = false;
 
         // boost player unit health
-        setMaxHealth(300.0f);
+        setMaxHealth(100.0f);
         currentHealth = maxHealth;
 
         this.ownerFaction = ownerFaction;
@@ -90,14 +90,14 @@ public class WorkerUnit extends AbstractUnit {
             // draw a highlight if selected
             if (selected) {
                 // draw a border around the oval
-                g.setColor(GameColors.UNIT_HIGHLIGHT);
+                g.setColor(getOwnerFaction().getFactionColors().getUnitHighlight());
                 g.drawOval((int)(((x - 2) - camera.getX()) * camera.scaleX),
                         (int)(((y - 2) - camera.getY()) * camera.scaleY),
                         (int)((width + 4) * camera.scaleX),
                         (int)((height + 4) * camera.scaleY));
             }
 
-            g.setColor(GameColors.UNIT_PLAYER_WORKER);
+            g.setColor(getOwnerFaction().getFactionColors().getWorkerUnit());
             g.fillOval( (int)((x - camera.getX()) * camera.scaleX),
                     (int)((y - camera.getY()) * camera.scaleY),
                     (int)(width * camera.scaleX),
@@ -165,7 +165,7 @@ public class WorkerUnit extends AbstractUnit {
         }
         else {
             // back to idle
-            Logger.log("No CommandCenter has been deployed.");
+            Logger.log("No CommandCenter has been deployed.", ownerFaction);
             System.out.println("No CommandCenter has been deployed.");
         }
     }
@@ -182,7 +182,7 @@ public class WorkerUnit extends AbstractUnit {
         this.end = freeCellList.get(ThreadLocalRandom.current().nextInt(freeCellList.size()));
 
         if (map.intArr[end.y][end.x] == 1) {
-            Logger.log("CommandCenter site is blocked.");
+            Logger.log("CommandCenter site is blocked.", getOwnerFaction());
             System.out.println("CommandCenter site is blocked.");
             return;
         }
@@ -190,7 +190,7 @@ public class WorkerUnit extends AbstractUnit {
         path = pf.FindPath(map.intArr, start, end);
 
         if (path == null || path.isEmpty()) {
-            Logger.log("No path found.");
+            Logger.log("No path found.", getOwnerFaction());
             System.out.println("No path found.");
             return;
         }
@@ -233,7 +233,7 @@ public class WorkerUnit extends AbstractUnit {
             issueCommand(CommandType.GATHER, ctx);
         } else {
             issueCommand(CommandType.IDLE, null);
-            Logger.log("ResourceNode depleted, assign new location.");
+            Logger.log("ResourceNode depleted, assign new location.", getOwnerFaction());
             System.out.println("ResourceNode depleted, assign new location.");
         }
     }
@@ -286,7 +286,7 @@ public class WorkerUnit extends AbstractUnit {
         this.end = freeCellList.get(randomFreeCell);  // 2
 
         if (map.intArr[end.y][end.x] == 1) {
-            Logger.log("ResourceNode site is blocked.");
+            Logger.log("ResourceNode site is blocked.", getOwnerFaction());
             System.out.println("ResourceNode site is blocked.");
             return;
         }
@@ -294,7 +294,7 @@ public class WorkerUnit extends AbstractUnit {
         path = pf.FindPath(map.intArr, start, end);
 
         if (path == null || path.isEmpty()) {
-            Logger.log("No path found.");
+            Logger.log("No path found.", getOwnerFaction());
             System.out.println("No path found.");
             return;
         }
@@ -331,8 +331,8 @@ public class WorkerUnit extends AbstractUnit {
         }
         Random rand = new Random();
         int size = sortedNodes.size();
-        int randomIndex = size - 1 - rand.nextInt(3);  // picks size-1, size-2, or size-3
-        ResourceNode pickNear = sortedNodes.get(randomIndex);
+        int randomIndex = size - 1 - rand.nextInt(2);  // picks size-1, size-2, or size-3
+        ResourceNode pickNear = sortedNodes.get(Math.max(randomIndex, 0));
         return pickNear;
     }
 
@@ -351,7 +351,7 @@ public class WorkerUnit extends AbstractUnit {
     public void startRepair() { moveToRepairSite(); }
 
     public void endRepair(){
-        Logger.log("EndRepair from WorkerUnit.");
+        Logger.log("EndRepair from WorkerUnit.", getOwnerFaction());
         System.out.println("EndRepair from WorkerUnit");
         repairUnitRef = null;
     }
@@ -512,7 +512,7 @@ public class WorkerUnit extends AbstractUnit {
 
         // Validate destination
         if (map.intArr[end.y][end.x] == 1) {
-            Logger.log("Destination is blocked.");
+            Logger.log("Destination is blocked.", getOwnerFaction());
             System.out.println("Destination is blocked.");
             //end = getRandomNearbyPoint(end, 3); // Try within a range of 2
             return;
@@ -523,7 +523,7 @@ public class WorkerUnit extends AbstractUnit {
         //map.printer();
 
         if (path == null || path.isEmpty()) {
-            Logger.log("No path found.");
+            Logger.log("No path found.", getOwnerFaction());
             System.out.println("No path found.");
             return;
         }

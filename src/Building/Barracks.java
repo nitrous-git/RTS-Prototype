@@ -66,7 +66,7 @@ public class Barracks extends AbstractBuilding {
         //this.ownerFaction = ownerFaction;
 
         this.currentState = State.UNDER_CONSTRUCTION;
-        generateBarracks(GameColors.BUILDING_BARRACKS_UNDER_CONSTRUCTION);
+        generateBarracks(getOwnerFaction().getFactionColors().getBuildingUnderConstructionBarracks());
 
         //System.out.println(ownerFaction.getName() + "Faction has instantiate Barracks ID :" + this.getID());
         //System.out.printf("Barracks instantiated at location %d %d%n", cellPos.x, cellPos.y);
@@ -100,9 +100,9 @@ public class Barracks extends AbstractBuilding {
                 constructionTimer++;
                 if (constructionTimer >= CONSTRUCTION_TICKS) {
                     currentState = State.IN_OPERATION;
-                    generateBarracks(GameColors.BUILDING_BARRACKS);
-                    Logger.log("Construction Completed.");
-                    System.out.println("Construction Completed...");
+                    generateBarracks(getOwnerFaction().getFactionColors().getBuildingBarracks());
+                    //Logger.log("Construction Completed.");
+                    //System.out.println("Construction Completed...");
 
                     if (!ownerFaction.isAI) {
                         // activate commandPanel
@@ -122,7 +122,7 @@ public class Barracks extends AbstractBuilding {
 
         // highlight if selected
         if (selected) {
-            g.setColor(GameColors.BUILDING_HIGHLIGHT);
+            g.setColor(getOwnerFaction().getFactionColors().getBuildingHighlight());
             g.drawRect(
                     (int)((x - camera.getX()) * camera.scaleX),
                     (int)((y - camera.getY()) * camera.scaleY),
@@ -140,7 +140,7 @@ public class Barracks extends AbstractBuilding {
     public void produce(UnitType type) {
         Cost cost = type.getCost();
         if (!ownerFaction.getResourceManager().canAfford(cost)) {
-            Logger.log("Not enough resources for " + type + "_UNIT");
+            Logger.log("Not enough resources for " + type + "_UNIT", getOwnerFaction());
             System.out.println("Not enough resources for " + type + "_UNIT");
             return;
         }
@@ -151,7 +151,7 @@ public class Barracks extends AbstractBuilding {
 
         Logger.log("Built " + type  + " | Remaining minerals: " + ownerFaction.getResourceManager().get(ResourceType.MINERAL) +
                 ", used supply: " + ownerFaction.getResourceManager().getUsedSupply() + "/"
-                + ownerFaction.getResourceManager().getMaxSupply());
+                + ownerFaction.getResourceManager().getMaxSupply(), getOwnerFaction());
 
         System.out.println("Built " + type  + " | Remaining minerals: " + ownerFaction.getResourceManager().get(ResourceType.MINERAL) +
                             ", used supply: " + ownerFaction.getResourceManager().getUsedSupply() + "/"

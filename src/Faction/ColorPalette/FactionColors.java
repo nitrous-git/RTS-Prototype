@@ -18,8 +18,7 @@ public class FactionColors {
     private final Color buildingUnderConstructionSupplyDepot;
     private final Color buildingUnderConstructionCommandCenter;
 
-    // Highlights & Selection
-    private final Color selectionBox;
+    // Highlights
     private final Color unitHighlight;
     private final Color buildingHighlight;
     private final Color resourceHighlight;
@@ -32,7 +31,6 @@ public class FactionColors {
                          Color buildingUnderConstructionBarracks,
                          Color buildingUnderConstructionSupplyDepot,
                          Color buildingUnderConstructionCommandCenter,
-                         Color selectionBox,
                          Color unitHighlight,
                          Color buildingHighlight,
                          Color resourceHighlight) {
@@ -44,7 +42,6 @@ public class FactionColors {
         this.buildingUnderConstructionBarracks = buildingUnderConstructionBarracks;
         this.buildingUnderConstructionSupplyDepot = buildingUnderConstructionSupplyDepot;
         this.buildingUnderConstructionCommandCenter = buildingUnderConstructionCommandCenter;
-        this.selectionBox = selectionBox;
         this.unitHighlight = unitHighlight;
         this.buildingHighlight = buildingHighlight;
         this.resourceHighlight = resourceHighlight;
@@ -66,10 +63,6 @@ public class FactionColors {
 
     public Color getUnitHighlight() {
         return unitHighlight;
-    }
-
-    public Color getSelectionBox() {
-        return selectionBox;
     }
 
     public Color getBuildingUnderConstructionCommandCenter() {

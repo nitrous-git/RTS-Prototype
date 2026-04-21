@@ -19,7 +19,7 @@ public class EnemyUnit extends AbstractUnit {
     @Override
     public void draw(Graphics g, Camera camera) {
         if (camera.captures(this) && !isDestroyed()) {
-	        g.setColor(GameColors.UNIT_ENEMY_COMBAT);
+	        g.setColor(Color.WHITE);
 			g.fillOval( (int)((x - camera.getX()) * camera.scaleX),
 						(int)((y - camera.getY()) * camera.scaleY),
 						(int)(width * camera.scaleX),

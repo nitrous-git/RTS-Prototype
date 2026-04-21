@@ -52,11 +52,11 @@ public class CommandActionListener implements ActionListener {
 
 		// AbstractBuilding Shared Event
 		if (source == CP.setWaypoint) {
-			Logger.log("Set Waypoint - to implement");
+			Logger.log("Set Waypoint - to implement", playerFaction);
 			System.out.println("Set Waypoint - to implement");
 		}
 	    if (source == CP.cancelLastQueue) {
-			Logger.log("Cancel Last Queued Unit - to implement");
+			Logger.log("Cancel Last Queued Unit - to implement", playerFaction);
 		    System.out.println("Cancel Last Queued Unit - to implement");
 	    }
 
@@ -123,7 +123,7 @@ public class CommandActionListener implements ActionListener {
 		}
 
 		if (source == CP.cancelConstruction) {
-			Logger.log("Cancel Construction - to implement");
+			Logger.log("Cancel Construction - to implement", playerFaction);
 			System.out.println("Cancel Construction - to implement - from CommandActionListener");
 		}
 

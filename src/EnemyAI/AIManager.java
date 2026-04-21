@@ -51,33 +51,80 @@ public class AIManager {
 
     private void scheduleActions() {
         float timeFactor = 1000f;
-        ////aiStateContext.setBuildContext(0f*timeFactor, BuildingType.COMMAND_CENTER);
-        ////stateQueue.add( new BuildState(this, aiStateContext, "buildCommandCenter"));
-        //currentState = stateQueue.poll();
+
+        // Build the command center
+        aiStateContext.setBuildContext(1.2f*timeFactor, BuildingType.COMMAND_CENTER);
+        stateQueue.add( new BuildState(this, aiStateContext, "buildCommandCenter"));
         //System.out.println("stateQueue peek at NAME : " + currentState.name);
         //System.out.println("currentState timestamp : " + currentState.timestamp);
 
-        ////aiStateContext.setTrainUnitContext(10f*timeFactor, UnitType.WORKER);
-        ////stateQueue.add( new TrainState(this, aiStateContext, "trainWorkerUnit"));
-        ////aiStateContext.setTrainUnitContext(11f*timeFactor, UnitType.WORKER);
-        ////stateQueue.add( new TrainState(this, aiStateContext, "trainWorkerUnit"));
-        ////aiStateContext.setTrainUnitContext(12f*timeFactor, UnitType.WORKER);
-        ////stateQueue.add( new TrainState(this, aiStateContext, "trainWorkerUnit"));
-        //currentState = stateQueue.poll();
-        //System.out.println("stateQueue peek at NAME : " + currentState.name);
-        //System.out.println("currentState timestamp : " + currentState.timestamp);
+        // Train 3 worker unit
+        aiStateContext.setTrainUnitContext(10f*timeFactor, UnitType.WORKER);
+        stateQueue.add( new TrainState(this, aiStateContext, "trainWorkerUnit"));
+        aiStateContext.setTrainUnitContext(11f*timeFactor, UnitType.WORKER);
+        stateQueue.add( new TrainState(this, aiStateContext, "trainWorkerUnit"));
+        aiStateContext.setTrainUnitContext(12f*timeFactor, UnitType.WORKER);
+        stateQueue.add( new TrainState(this, aiStateContext, "trainWorkerUnit"));
 
-        //aiStateContext.setTrainUnitContext(100f, UnitType.WORKER));
-        //stateQueue.add( new TrainState(this, aiStateContext));
+        // Build the barracks
+        aiStateContext.setBuildContext(24f*timeFactor, BuildingType.BARRACKS);
+        stateQueue.add( new BuildState(this, aiStateContext, "buildBarracks"));
 
+        // Train 2 combat unit
+        aiStateContext.setTrainUnitContext(30f*timeFactor, UnitType.COMBAT);
+        stateQueue.add( new TrainState(this, aiStateContext, "trainCombatUnit"));
+        aiStateContext.setTrainUnitContext(32f*timeFactor, UnitType.COMBAT);
+        stateQueue.add( new TrainState(this, aiStateContext, "trainCombatUnit"));
 
-        ////aiStateContext.setBuildContext(15f*timeFactor, BuildingType.SUPPLY_DEPOT);
+        // Send 1 combat unit scout recognition
+        aiStateContext.setWaveAttackContext(70f*timeFactor, aiFaction.getBuildingManager().getGameContext(), 1);
+        stateQueue.add( new WaveAttackState(this, aiStateContext, "sendWaveAttack"));
+
+        // Train 4 combat unit
+        aiStateContext.setTrainUnitContext(74f*timeFactor, UnitType.COMBAT);
+        stateQueue.add( new TrainState(this, aiStateContext, "trainCombatUnit"));
+        aiStateContext.setTrainUnitContext(75f*timeFactor, UnitType.COMBAT);
+        stateQueue.add( new TrainState(this, aiStateContext, "trainCombatUnit"));
+        aiStateContext.setTrainUnitContext(76f*timeFactor, UnitType.COMBAT);
+        stateQueue.add( new TrainState(this, aiStateContext, "trainCombatUnit"));
+        aiStateContext.setTrainUnitContext(77f*timeFactor, UnitType.COMBAT);
+        stateQueue.add( new TrainState(this, aiStateContext, "trainCombatUnit"));
+
+        // Build supply depot
+        aiStateContext.setBuildContext(90f*timeFactor, BuildingType.SUPPLY_DEPOT);
         //System.out.println("Building Type : "+  aiStateContext.getBuildingType() + ", Timestamp : " + aiStateContext.getTimestamp());
-        ////stateQueue.add( new BuildState(this, aiStateContext, "buildSupplyDepot"));
-        //currentState = stateQueue.poll();
-        //System.out.println("currentState NAME : " + currentState.name);
-        //System.out.println("currentState timestamp : " + currentState.timestamp);
+        stateQueue.add( new BuildState(this, aiStateContext, "buildSupplyDepot"));
 
+        // Send 4 combat unit scout recognition
+        aiStateContext.setWaveAttackContext(120f*timeFactor, aiFaction.getBuildingManager().getGameContext(), 4);
+        stateQueue.add( new WaveAttackState(this, aiStateContext, "sendWaveAttack"));
+
+        // Train 5 combat unit
+        aiStateContext.setTrainUnitContext(145f*timeFactor, UnitType.COMBAT);
+        stateQueue.add( new TrainState(this, aiStateContext, "trainCombatUnit"));
+        aiStateContext.setTrainUnitContext(146f*timeFactor, UnitType.COMBAT);
+        stateQueue.add( new TrainState(this, aiStateContext, "trainCombatUnit"));
+        aiStateContext.setTrainUnitContext(147f*timeFactor, UnitType.COMBAT);
+        stateQueue.add( new TrainState(this, aiStateContext, "trainCombatUnit"));
+        aiStateContext.setTrainUnitContext(148f*timeFactor, UnitType.COMBAT);
+        stateQueue.add( new TrainState(this, aiStateContext, "trainCombatUnit"));
+        aiStateContext.setTrainUnitContext(149f*timeFactor, UnitType.COMBAT);
+        stateQueue.add( new TrainState(this, aiStateContext, "trainCombatUnit"));
+
+        // Send 5 combat unit scout recognition
+        aiStateContext.setWaveAttackContext(180f*timeFactor, aiFaction.getBuildingManager().getGameContext(), 5);
+        stateQueue.add( new WaveAttackState(this, aiStateContext, "sendWaveAttack"));
+
+    }
+
+
+
+
+
+
+
+    private void scheduleActions_TestWave() {
+        float timeFactor = 1000f;
 
         aiStateContext.setBuildContext(0f*timeFactor, BuildingType.BARRACKS);
         //System.out.println("Building Type : "+  aiStateContext.getBuildingType() + ", Timestamp : " + aiStateContext.getTimestamp());
@@ -92,11 +139,37 @@ public class AIManager {
         stateQueue.add( new TrainState(this, aiStateContext, "trainCombatUnit"));
         aiStateContext.setTrainUnitContext(13f*timeFactor, UnitType.COMBAT); // 44
         stateQueue.add( new TrainState(this, aiStateContext, "trainCombatUnit"));
+        aiStateContext.setTrainUnitContext(14f*timeFactor, UnitType.COMBAT); // 44
+        stateQueue.add( new TrainState(this, aiStateContext, "trainCombatUnit"));
+        aiStateContext.setTrainUnitContext(15f*timeFactor, UnitType.COMBAT); // 44
+        stateQueue.add( new TrainState(this, aiStateContext, "trainCombatUnit"));
 
-        aiStateContext.setWaveAttackContext(80f*timeFactor, aiFaction.getBuildingManager().getGameContext(), 5);  // 25
+        aiStateContext.setWaveAttackContext(60f*timeFactor, aiFaction.getBuildingManager().getGameContext(), 3);  // 25
+        stateQueue.add( new WaveAttackState(this, aiStateContext, "sendWaveAttack"));
+
+        aiStateContext.setWaveAttackContext(80f*timeFactor, aiFaction.getBuildingManager().getGameContext(), 2);  // 25
         stateQueue.add( new WaveAttackState(this, aiStateContext, "sendWaveAttack"));
 
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     public Vector2Int findNearbyBuildLocation(Vector2Int seed, int w, int h, int padding) {
         boolean[][] visited = new boolean[map.row][map.column];

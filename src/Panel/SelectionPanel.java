@@ -207,7 +207,7 @@ public class SelectionPanel extends JPanel {
 
                 if (ab instanceof Barracks) {
                     // filled blue circle
-                    g.setColor(Color.BLUE);
+                    g.setColor(Color.DARK_GRAY);
                     g.fillOval(xPos, y, iconSize, iconSize);
                 }
 

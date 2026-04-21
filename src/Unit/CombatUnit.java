@@ -57,8 +57,8 @@ public class CombatUnit extends AbstractUnit {
     	this.isMoving = false;
     	
     	// boost player unit health 
-    	setMaxHealth(300.0f);
-    	currentHealth = 300f;
+    	setMaxHealth(200.0f);
+    	currentHealth = 200f;
         healthBar.width = (float)(currentHealth/maxHealth)*2f*width;
 
         this.ownerFaction = ownerFaction;
@@ -85,14 +85,14 @@ public class CombatUnit extends AbstractUnit {
 		    // draw a highlight if selected
 	        if (selected) {
 	            // draw a border around the oval
-	            g.setColor(GameColors.UNIT_HIGHLIGHT);
+	            g.setColor(getOwnerFaction().getFactionColors().getUnitHighlight());
 	            g.drawOval((int)(((x - 2) - camera.getX()) * camera.scaleX), 
 	            		(int)(((y - 2) - camera.getY()) * camera.scaleY), 
 	            		(int)((width + 4) * camera.scaleX), 
 	            		(int)((height + 4) * camera.scaleY));
 	        }
 	        
-	        g.setColor(GameColors.UNIT_PLAYER_COMBAT);
+	        g.setColor(getOwnerFaction().getFactionColors().getCombatUnit());
 			g.fillOval( (int)((x - camera.getX()) * camera.scaleX),
 						(int)((y - camera.getY()) * camera.scaleY),
 						(int)(width * camera.scaleX),
@@ -103,7 +103,8 @@ public class CombatUnit extends AbstractUnit {
 						(int)((visionBox.y - camera.getY()) * camera.scaleY),
 						(int)(visionBox.width * camera.scaleX),
 						(int)(visionBox.height * camera.scaleY) );
-			
+
+            g.setColor(GameColors.HEALTH_BAR);
 			g.fillRect( (int)((healthBar.x - camera.getX()) * camera.scaleX),
 					(int)((healthBar.y - camera.getY()) * camera.scaleY),
 					(int)(healthBar.width * camera.scaleX),
@@ -232,7 +233,7 @@ public class CombatUnit extends AbstractUnit {
     	
         // Validate destination
         if (map.intArr[end.y][end.x] == 1) {
-            Logger.log("Destination is blocked.");
+            Logger.log("Destination is blocked.", getOwnerFaction());
             System.out.println("Destination is blocked.");
             //end = getRandomNearbyPoint(end, 3); // Try within a range of 2
             return;
@@ -243,7 +244,7 @@ public class CombatUnit extends AbstractUnit {
         //map.printer();
         
         if (path == null || path.isEmpty()) {
-            Logger.log("No path found.");
+            Logger.log("No path found.", getOwnerFaction());
             System.out.println("No path found.");
             return;
         }

@@ -101,7 +101,7 @@ public class BuildingManager {
 	public void construct(BuildingType type, Vector2Int startPos) {
 		Cost cost = type.getCost();
 		if (!ownerFaction.getResourceManager().canAfford(cost)) {
-			Logger.log("Not enough resources for " + type + " building : " + ownerFaction.getName());
+			Logger.log("Not enough resources for " + type + " building : " + ownerFaction.getName(), ownerFaction);
 			System.out.println("Not enough resources for " + type + " building : " + ownerFaction.getName());
 			return;
 		}
@@ -123,7 +123,7 @@ public class BuildingManager {
 		Logger.log("Built " + type
 				+ " | Minerals left: " + ownerFaction.getResourceManager().get(ResourceType.MINERAL)
 				+ " | Supply: " + ownerFaction.getResourceManager().getUsedSupply() + "/"
-				+ ownerFaction.getResourceManager().getMaxSupply());
+				+ ownerFaction.getResourceManager().getMaxSupply(), ownerFaction);
 
 		System.out.println("Built " + type
 				+ " | Minerals left: " + ownerFaction.getResourceManager().get(ResourceType.MINERAL)

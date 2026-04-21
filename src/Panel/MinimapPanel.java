@@ -91,7 +91,7 @@ public class MinimapPanel extends JPanel {
         float sy = h / worldH;
 
         for (AbstractUnit u : GC.getAllUnits()) {
-            if (u.getOwnerFaction().getName().equals("Player")) {
+            if (!u.getOwnerFaction().isAI) {
                 g.setColor(MINI_PLAYER);
             } else {
                 g.setColor(MINI_ENEMY);

@@ -1,5 +1,7 @@
 package Util;
 
+import Faction.Faction;
+
 import java.awt.*;
 import java.util.Collections;
 import java.util.Deque;
@@ -37,12 +39,14 @@ public class Logger {
      * Adds a new message to the log. Cleans up expired entries and enforces capacity.
      * @param msg the message to log
      */
-    public static void log(String msg) {
-        cleanupExpired();
-        if (messages.size() >= MAX_MESSAGES) {
-            messages.removeFirst();
+    public static void log(String msg, Faction faction) {
+        if (!faction.isAI) {
+            cleanupExpired();
+            if (messages.size() >= MAX_MESSAGES) {
+                messages.removeFirst();
+            }
+            messages.addLast(new LogEntry(msg));
         }
-        messages.addLast(new LogEntry(msg));
     }
 
     /**

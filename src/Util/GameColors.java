@@ -40,19 +40,16 @@ public final class GameColors {
 //    public static final Color MOVEMENT_TILE_HELPER                   = new Color(0x34495E); // Wet Asphalt (movement tile)
 //    public static final Color BUILDING_PLACEMENT_TILE_HELPER         = new Color(0x2C3E50); // Midnight Blue (placement tile)
 //
-//
-//
-
-
 
     // Neutral world / UI colors
     public static final Color WALL = new Color(0x2C3E50);
     public static final Color GRID_LINES = new Color(0x34495E);
 
-    //public static final Color SELECTION_BOX = new Color(0x1ABC9C);
+    public static final Color SELECTION_BOX = new Color(0x1ABC9C);
 
     public static final Color RESOURCE_NODE_MINERAL = new Color(0x00BFFF);
     public static final Color RESOURCE_NODE_GAS = new Color(0x7F8C8D);
+    public static final Color RESOURCE_HIGHLIGHT = new Color(0xBDC3C7); // Silver (resource focus)
 
     public static final Color MOVEMENT_TILE_HELPER = new Color(0x34495E);
     public static final Color BUILDING_PLACEMENT_TILE_HELPER = new Color(0x2C3E50);

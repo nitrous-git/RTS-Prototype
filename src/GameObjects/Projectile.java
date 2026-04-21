@@ -9,6 +9,7 @@ import Manager.PlayerUnitManager;
 import Panel.GamePanel;
 import Unit.AbstractUnit;
 import Util.Camera;
+import Util.GameColors;
 import Util.TileMap;
 
 public class Projectile extends Entity{
@@ -41,7 +42,7 @@ public class Projectile extends Entity{
     public void draw(Graphics g, Camera camera) {
         if (camera.captures(this) && !collided) {	 
         	
-	        g.setColor(Color.GRAY);
+	        g.setColor(GameColors.PROJECTILE);
 			g.fillOval( (int)((x - camera.getX()) * camera.scaleX),
 						(int)((y - camera.getY()) * camera.scaleY),
 						(int)(width * camera.scaleX),

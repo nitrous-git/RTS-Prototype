@@ -65,7 +65,7 @@ public class CommandCenter extends AbstractBuilding {
         this.bm = bm;
 
         this.currentState = State.UNDER_CONSTRUCTION;
-        generateCommandCenter(GameColors.BUILDING_COMMAND_CENTER_UNDER_CONSTRUCTION);
+        generateCommandCenter(getOwnerFaction().getFactionColors().getBuildingUnderConstructionCommandCenter());
     }
 
     @Override
@@ -78,8 +78,8 @@ public class CommandCenter extends AbstractBuilding {
                 constructionTimer++;
                 if (constructionTimer >= CONSTRUCTION_TICKS) {
                     currentState = State.IN_OPERATION;
-                    generateCommandCenter(GameColors.BUILDING_COMMAND_CENTER);
-                    Logger.log("Construction Completed.");
+                    generateCommandCenter(getOwnerFaction().getFactionColors().getBuildingCommandCenter());
+                    Logger.log("Construction Completed.", getOwnerFaction());
                     System.out.println("Construction Completed...");
 
                     if (!ownerFaction.isAI) {
@@ -100,7 +100,7 @@ public class CommandCenter extends AbstractBuilding {
 
         // highlight if selected
         if (selected) {
-            g.setColor(GameColors.BUILDING_HIGHLIGHT);
+            g.setColor(getOwnerFaction().getFactionColors().getBuildingHighlight());
             g.drawRect(
                     (int)((x - camera.getX()) * camera.scaleX),
                     (int)((y - camera.getY()) * camera.scaleY),
@@ -119,7 +119,7 @@ public class CommandCenter extends AbstractBuilding {
     public void produce(UnitType type) {
         Cost cost = type.getCost();
         if (!ownerFaction.getResourceManager().canAfford(cost)) {
-            Logger.log("Not enough resources for " + type + "_UNIT");
+            Logger.log("Not enough resources for " + type + "_UNIT", getOwnerFaction());
             System.out.println("Not enough resources for " + type + "_UNIT");
             return;
         }
@@ -130,7 +130,7 @@ public class CommandCenter extends AbstractBuilding {
 
         Logger.log("Built " + type  + " | Remaining minerals: " + ownerFaction.getResourceManager().get(ResourceType.MINERAL) +
                 ", used supply: " + ownerFaction.getResourceManager().getUsedSupply() + "/"
-                + ownerFaction.getResourceManager().getMaxSupply());
+                + ownerFaction.getResourceManager().getMaxSupply(), getOwnerFaction());
 
         System.out.println("Built " + type  + " | Remaining minerals: " + ownerFaction.getResourceManager().get(ResourceType.MINERAL) +
                 ", used supply: " + ownerFaction.getResourceManager().getUsedSupply() + "/"

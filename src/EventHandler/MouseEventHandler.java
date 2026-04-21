@@ -36,7 +36,6 @@ public class MouseEventHandler implements MouseListener, MouseMotionListener {
     private PlayerUnitManager PUM;
 
     public BuildingType currentBuildingType;
-    //private List<AbstractBuilding> allBuildingsCache;
 
     private final List<SelectionHandler> handlers;
 
@@ -70,8 +69,6 @@ public class MouseEventHandler implements MouseListener, MouseMotionListener {
 			SB.startSelection(e.getX(), e.getY());
 			GP.repaint();
 		}
-
-        //allBuildingsCache = FM.getAllBuildings();
     }
 
     @Override
@@ -306,7 +303,8 @@ public class MouseEventHandler implements MouseListener, MouseMotionListener {
             var b = GC.getSelectedBuilding();
             if (b != null) {
                 playerFaction.getResourceManager().clearSelectedResources();
-                if (b.getOwnerFaction().getName().equals("Player")) {
+                // Filter only active current player faction
+                if (!b.getOwnerFaction().isAI) {
                     //System.out.println("PLAYER BUILDING");
                     handleBuildingSelectionBox(b);
                 }

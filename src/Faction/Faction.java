@@ -1,5 +1,6 @@
 package Faction;
 
+import Faction.ColorPalette.FactionColors;
 import GameObjects.Tile;
 import Manager.*;
 import Panel.CommandPanel;
@@ -10,6 +11,7 @@ import Util.Vector2Int;
 import java.awt.*;
 
 public class Faction {
+
     private final String name;
     private final TileMap map;
     private final ResourceManager RM;
@@ -17,10 +19,13 @@ public class Faction {
     private final UnitManager UM;
     private final FactionController controller;
     private Vector2Int spawnSeed;
+    private FactionColors factionColors;
 
     public boolean isAI;
 
-    public Faction(String name, FactionController controller, UnitManager UM, BuildingManager BM, ResourceManager RM, TileMap map) {
+    public Faction(String name, FactionController controller,
+                   UnitManager UM, BuildingManager BM, ResourceManager RM,
+                   TileMap map, FactionColors factionColors) {
         this.name = name;
         this.map = map;
         this.RM = RM;
@@ -29,6 +34,7 @@ public class Faction {
         this.controller = controller;
         controller.init(this);
         isAI = controller instanceof AIController;
+        this.factionColors = factionColors;
     }
 
     public void update() {
@@ -58,6 +64,10 @@ public class Faction {
 
     public boolean isAI() {
         return isAI;
+    }
+
+    public FactionColors getFactionColors() {
+        return factionColors;
     }
 
 }

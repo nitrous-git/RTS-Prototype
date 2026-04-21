@@ -73,7 +73,7 @@ public class ResourceNode extends Entity {
                                                     (int) GamePanel.TILE_SIZE,
                                                     (int) GamePanel.TILE_SIZE,
                                                     GameColors.RESOURCE_NODE_MINERAL);
-        map.intArr[cellPos.y ][cellPos.x ] = TOKEN;
+        map.intArr[cellPos.y][cellPos.x] = TOKEN;
 
         //map.printer();
     }

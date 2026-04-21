@@ -50,7 +50,7 @@ public class SupplyDepot extends AbstractBuilding {
 
         // begin under construction
         this.currentState = State.UNDER_CONSTRUCTION;
-        paintTiles(GameColors.BUILDING_SUPPLY_DEPOT_UNDER_CONSTRUCTION);
+        paintTiles(getOwnerFaction().getFactionColors().getBuildingUnderConstructionSupplyDepot());
     }
 
     public void update() {
@@ -59,9 +59,9 @@ public class SupplyDepot extends AbstractBuilding {
                 constructionTimer++;
                 if (constructionTimer >= CONSTRUCTION_TICKS) {
                     currentState = State.IN_OPERATION;
-                    paintTiles(GameColors.BUILDING_SUPPLY_DEPOT);
+                    paintTiles(getOwnerFaction().getFactionColors().getBuildingSupplyDepot());
                     Logger.log("Supply Depot completed, +"
-                            + SUPPLY_AMOUNT + " supply");
+                            + SUPPLY_AMOUNT + " supply", getOwnerFaction());
                     System.out.println("Supply Depot completed, +"
                             + SUPPLY_AMOUNT + " supply");
                     // increase the player's max supply
@@ -84,7 +84,7 @@ public class SupplyDepot extends AbstractBuilding {
     public void draw(Graphics g, Camera camera) {
         if (!camera.captures(this)) return;
         if (selected) {
-            g.setColor(GameColors.BUILDING_HIGHLIGHT);
+            g.setColor(getOwnerFaction().getFactionColors().getBuildingHighlight());
             g.drawRect(
                     (int)((x - camera.getX()) * camera.scaleX),
                     (int)((y - camera.getY()) * camera.scaleY),
